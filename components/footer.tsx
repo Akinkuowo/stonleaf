@@ -36,7 +36,7 @@ export default function Footer() {
             </div>
             <div className='flex justify-between'>
               <p className="text-sm font-light text-white">
-                Sign up for our newsletter and <span className="font-bold">get 20% off</span>
+                Sign up for our newsletter 
               </p>
 
               <button className=" text-white">
@@ -82,13 +82,13 @@ export default function Footer() {
             <h1 className="text-2xl font-bold tracking-wider">STONLEAF</h1>
 
             {/* Social Icons */}
-            <div className="flex items-center gap-4 text-gray-400">
+            {/* <div className="flex items-center gap-4 text-gray-400">
               <a href="#" className="hover:text-white transition-colors"><Instagram size={20} /></a>
               <a href="#" className="hover:text-white transition-colors"><Facebook size={20} /></a>
               <a href="#" className="hover:text-white transition-colors">
                 <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"><path d="M8 12a4 4 0 1 0 8 0 4 4 0 0 0-8 0"></path><path d="M12 12v6"></path><path d="M12 2v2"></path><circle cx="12" cy="12" r="10"></circle></svg>
               </a>
-            </div>
+            </div> */}
           </div>
 
           {/*Local Printing */}

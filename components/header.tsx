@@ -1,11 +1,28 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react';
-import { Search, User, ShoppingBag, ChevronDown, X, Mail, Lock, Eye, EyeOff } from 'lucide-react';
+import { Search, X, Mail, Lock, Eye, EyeOff } from 'lucide-react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 
 type MenuId = 'shop' | 'partners' | 'sellers' | 'about' | null;
 type AuthMode = 'signin' | 'signup' | null;
+type CategoryType = 'all' | 'canvas' | 'photo' | 'digital' | 'ar';
+
+interface MenuItem {
+  label: string;
+  category: CategoryType | null;
+  href?: string;
+  onClick?: () => void;
+}
+
+interface MenuData {
+  id: MenuId;
+  label: string;
+  items: MenuItem[];
+  link?: string;
+}
 
 interface AuthResponse {
   success: boolean;
@@ -15,11 +32,13 @@ interface AuthResponse {
 }
 
 export default function Header() {
+  const router = useRouter();
   const [activeMenu, setActiveMenu] = useState<MenuId>('shop');
   const [hoveredMenu, setHoveredMenu] = useState<MenuId>(null);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
   const [showAuthPopup, setShowAuthPopup] = useState<AuthMode>(null);
+  const [showAboutPopup, setShowAboutPopup] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
@@ -32,34 +51,59 @@ export default function Header() {
 
   const userDropdownRef = useRef<HTMLDivElement>(null);
   const authPopupRef = useRef<HTMLDivElement>(null);
+  const aboutPopupRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const leaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Mock dropdown data for each menu item
-  const menuItems = [
+  const menuItems: MenuData[] = [
     {
       id: 'shop' as const,
       label: 'SHOP',
-      items: ['All', 'Canvas Art', 'Photo Art', 'Digital Art', 'AR Art']
+      items: [
+        { label: 'All', category: 'all' },
+        { label: 'Canvas Art', category: 'canvas' },
+        { label: 'Photo Art', category: 'photo' },
+        { label: 'Digital Art', category: 'digital' },
+        { label: 'AR Art', category: 'ar' }
+      ],
+      link: '/shop'
     },
     {
       id: 'partners' as const,
       label: 'OUR PARTNERS',
-      items: ['Artists', 'Collaborators']
+      items: [
+        { label: 'Artists', category: null, href: '/artist' },
+        { label: 'Collaborators', category: null, href: '/collaborators' }
+      ]
     },
     {
       id: 'sellers' as const,
       label: 'JOIN OUR SELLERS',
-      items: ['I am an Artist', 'I am a Marketer']
+      items: [
+        { label: 'I am an Artist', category: null, href: '/become-an-artist' },
+        { label: 'I am a Marketer', category: null, href: '/become-a-marketer' }
+      ]
     },
     {
       id: 'about' as const,
       label: 'ABOUT',
-      items: ['About Us', 'Blog', 'DIY Hang']
+      items: [
+        {
+          label: 'About Us',
+          category: null,
+          onClick: () => {
+            setShowAboutPopup(true);
+            setHoveredMenu(null);
+          }
+        },
+        { label: 'Blog', category: null, href: '/blog' },
+        { label: 'DIY Hang', category: null, href: '/ diy-hang' }
+      ]
     }
   ];
 
-  // Authentication functions
+  // Authentication functions (unchanged)
   const signIn = async (email: string, password: string): Promise<AuthResponse> => {
     try {
       const response = await fetch('/api/auth/signin', {
@@ -71,12 +115,8 @@ export default function Header() {
       const data = await response.json();
 
       if (response.ok) {
-        // Store token in localStorage
         localStorage.setItem('token', data.token);
-
-        // You might want to store user data in state or context
         console.log('User signed in:', data.user);
-
         return { success: true, user: data.user, token: data.token };
       } else {
         return { success: false, error: data.error || 'Sign in failed' };
@@ -103,11 +143,8 @@ export default function Header() {
       const data = await response.json();
 
       if (response.ok) {
-        // Store token in localStorage
         localStorage.setItem('token', data.token);
-
         console.log('User signed up:', data.user);
-
         return { success: true, user: data.user, token: data.token };
       } else {
         return { success: false, error: data.error || 'Sign up failed' };
@@ -127,12 +164,14 @@ export default function Header() {
       if (authPopupRef.current && !authPopupRef.current.contains(event.target as Node)) {
         setShowAuthPopup(null);
       }
+      if (aboutPopupRef.current && !aboutPopupRef.current.contains(event.target as Node)) {
+        setShowAboutPopup(false);
+      }
     };
 
     document.addEventListener('mousedown', handleClickOutside);
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
-      // Clear timeout on unmount
       if (leaveTimeoutRef.current) {
         clearTimeout(leaveTimeoutRef.current);
       }
@@ -149,7 +188,6 @@ export default function Header() {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
-    // Clear error when user starts typing
     if (authError) setAuthError(null);
   };
 
@@ -162,13 +200,11 @@ export default function Header() {
       if (result.success) {
         setShowAuthPopup(null);
         setFormData({ email: '', password: '', confirmPassword: '', name: '', country: '' });
-        // You could trigger a page refresh or update user state here
-        window.location.reload(); // Simple refresh to update UI
+        window.location.reload();
       } else {
         setAuthError(result.error || 'Sign in failed');
       }
     } else {
-      // Sign up validation
       if (formData.password !== formData.confirmPassword) {
         setAuthError('Passwords do not match');
         return;
@@ -184,7 +220,7 @@ export default function Header() {
       if (result.success) {
         setShowAuthPopup(null);
         setFormData({ email: '', password: '', confirmPassword: '', name: '', country: '' });
-        window.location.reload(); // Simple refresh to update UI
+        window.location.reload();
       } else {
         setAuthError(result.error || 'Sign up failed');
       }
@@ -194,7 +230,6 @@ export default function Header() {
   const switchAuthMode = () => {
     setShowAuthPopup(showAuthPopup === 'signin' ? 'signup' : 'signin');
     setAuthError(null);
-    // Clear password fields when switching modes
     setFormData(prev => ({ ...prev, password: '', confirmPassword: '' }));
   };
 
@@ -204,9 +239,7 @@ export default function Header() {
     setAuthError(null);
   };
 
-  // Function to handle menu mouse enter
   const handleMenuEnter = (menuId: MenuId) => {
-    // Clear any existing timeout to prevent premature closure
     if (leaveTimeoutRef.current) {
       clearTimeout(leaveTimeoutRef.current);
       leaveTimeoutRef.current = null;
@@ -214,18 +247,14 @@ export default function Header() {
     setHoveredMenu(menuId);
   };
 
-  // Function to handle menu mouse leave with delay
   const handleMenuLeave = () => {
-    // Set a timeout to close the menu after 5 seconds
     leaveTimeoutRef.current = setTimeout(() => {
       setHoveredMenu(null);
       leaveTimeoutRef.current = null;
-    }, 2000); // 5000 milliseconds = 5 seconds
+    }, 2000);
   };
 
-  // Function to handle user dropdown mouse enter
   const handleUserDropdownEnter = () => {
-    // Clear any existing timeout to prevent premature closure
     if (leaveTimeoutRef.current) {
       clearTimeout(leaveTimeoutRef.current);
       leaveTimeoutRef.current = null;
@@ -233,16 +262,13 @@ export default function Header() {
     setUserDropdownOpen(true);
   };
 
-  // Function to handle user dropdown mouse leave with delay
   const handleUserDropdownLeave = () => {
-    // Set a timeout to close the dropdown after 5 seconds
     leaveTimeoutRef.current = setTimeout(() => {
       setUserDropdownOpen(false);
       leaveTimeoutRef.current = null;
-    }, 2000); // 5000 milliseconds = 5 seconds
+    }, 2000);
   };
 
-  // Function to cancel leave timeout when re-entering dropdown area
   const cancelLeaveTimeout = () => {
     if (leaveTimeoutRef.current) {
       clearTimeout(leaveTimeoutRef.current);
@@ -250,11 +276,43 @@ export default function Header() {
     }
   };
 
+  // Handle shop menu click
+  const handleShopClick = () => {
+    router.push('/shop');
+    setActiveMenu('shop');
+  };
+
+  // Handle category click
+  const handleCategoryClick = (category: CategoryType) => {
+    if (category === 'all') {
+      router.push('/shop');
+    } else {
+      router.push(`/shop?category=${category}`);
+    }
+    setActiveMenu('shop');
+    setHoveredMenu(null);
+  };
+
+  // Handle partners menu click
+  const handlePartnersClick = () => {
+    setActiveMenu('partners');
+    // Don't navigate on main button click, only on dropdown items
+  };
+
+  // Handle navigation to specific pages
+  const handleNavigation = (href?: string) => {
+    if (href) {
+      router.push(href);
+      setHoveredMenu(null);
+      setActiveMenu('partners');
+    }
+  };
+
   return (
     <div className="bg-white h-[12rem]">
       {/* Top Banner */}
       <div className="bg-black text-white text-center py-4 text-sm">
-        VISIT OUR STORE <a href="shop" className="text-white underline">HERE</a>
+        VISIT OUR STORE <Link href="/shop" className="text-white underline">HERE</Link>
       </div>
 
       {/* Header */}
@@ -263,7 +321,9 @@ export default function Header() {
           <div className="flex items-center justify-between py-6">
             {/* Logo */}
             <div className="flex-shrink-0">
-              <h1 className="text-2xl font-bold text-gray-900 tracking-tight">STONLEAF</h1>
+              <Link href="/">
+                <h1 className="text-2xl font-bold text-gray-900 tracking-tight cursor-pointer">STONLEAF</h1>
+              </Link>
             </div>
 
             {/* Icons */}
@@ -274,8 +334,7 @@ export default function Header() {
                   className="cursor-pointer text-gray-900 hover:text-gray-600 relative"
                   onMouseEnter={handleUserDropdownEnter}
                 >
-
-                  <img src='images/icons/icon (3).png' className='w-7 h-7' />
+                  <img src='/images/Icons/icon (3).png' className='w-7 h-7' alt="User" />
                 </button>
 
                 {/* User Dropdown */}
@@ -306,13 +365,13 @@ export default function Header() {
                 className="cursor-pointer text-gray-900 hover:text-gray-600"
                 onClick={() => setShowSearch(!showSearch)}
               >
-                <img src='images/icons/icon (2).png' className='w-7 h-7' />
+                <img src='/images/Icons/icon (2).png' className='w-7 h-7' alt="Search" />
               </button>
 
               {/* Cart Icon */}
               <Link href="/cart">
                 <button className="cursor-pointer text-gray-900 hover:text-gray-600">
-                  <img src='images/icons/icon (1).png' className='w-7 h-7' />
+                  <img src='/images/Icons/icon (1).png' className='w-7 h-7' alt="Cart" />
                 </button>
               </Link>
             </div>
@@ -349,20 +408,50 @@ export default function Header() {
               onMouseEnter={() => handleMenuEnter(menu.id)}
               onMouseLeave={handleMenuLeave}
             >
-              <button
-                onClick={() => setActiveMenu(menu.id)}
-                className={`
-                  cursor-pointer flex items-center space-x-1 text-sm tracking-wide transition-all duration-200
-                  ${activeMenu === menu.id
-                    ? 'font-bold text-gray-900'
-                    : 'font-normal text-gray-900 hover:text-gray-600'
-                  }
-                  ${hoveredMenu === menu.id ? 'border-b-2 border-gray-900' : ''}
-                `}
-              >
-                <span>{menu.label}</span>
-
-              </button>
+              {/* For SHOP menu, use onClick to navigate */}
+              {menu.id === 'shop' ? (
+                <button
+                  onClick={handleShopClick}
+                  className={`
+                    cursor-pointer flex items-center space-x-1 text-sm tracking-wide transition-all duration-200
+                    ${activeMenu === menu.id
+                      ? 'font-bold text-gray-900'
+                      : 'font-normal text-gray-900 hover:text-gray-600'
+                    }
+                    ${hoveredMenu === menu.id ? 'border-b-2 border-gray-900' : ''}
+                  `}
+                >
+                  <span>{menu.label}</span>
+                </button>
+              ) : menu.id === 'partners' ? (
+                <button
+                  onClick={handlePartnersClick}
+                  className={`
+                    cursor-pointer flex items-center space-x-1 text-sm tracking-wide transition-all duration-200
+                    ${activeMenu === menu.id
+                      ? 'font-bold text-gray-900'
+                      : 'font-normal text-gray-900 hover:text-gray-600'
+                    }
+                    ${hoveredMenu === menu.id ? 'border-b-2 border-gray-900' : ''}
+                  `}
+                >
+                  <span>{menu.label}</span>
+                </button>
+              ) : (
+                <button
+                  onClick={() => setActiveMenu(menu.id)}
+                  className={`
+                    cursor-pointer flex items-center space-x-1 text-sm tracking-wide transition-all duration-200
+                    ${activeMenu === menu.id
+                      ? 'font-bold text-gray-900'
+                      : 'font-normal text-gray-900 hover:text-gray-600'
+                    }
+                    ${hoveredMenu === menu.id ? 'border-b-2 border-gray-900' : ''}
+                  `}
+                >
+                  <span>{menu.label}</span>
+                </button>
+              )}
 
               {/* Dropdown Menu */}
               {hoveredMenu === menu.id && (
@@ -372,13 +461,21 @@ export default function Header() {
                   onMouseLeave={handleMenuLeave}
                 >
                   {menu.items.map((item, index) => (
-                    <a
+                    <button
                       key={index}
-                      href="#"
-                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-colors duration-150"
+                      onClick={() => {
+                        if (item.onClick) {
+                          item.onClick();
+                        } else if (item.category) {
+                          handleCategoryClick(item.category);
+                        } else if (item.href) {
+                          handleNavigation(item.href);
+                        }
+                      }}
+                      className="cursor-pointer block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-colors duration-150"
                     >
-                      {item}
-                    </a>
+                      {item.label}
+                    </button>
                   ))}
                 </div>
               )}
@@ -386,6 +483,129 @@ export default function Header() {
           ))}
         </nav>
       </header>
+
+      {/* About Us Popup Modal - Updated Layout */}
+      {showAboutPopup && (
+        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
+          <div
+            ref={aboutPopupRef}
+            className="bg-white rounded-lg shadow-xl w-full max-w-5xl max-h-[90vh] flex flex-col"
+          >
+            {/* Header */}
+            <div className="flex justify-between items-center p-6 border-b border-gray-200">
+              <h2 className="text-2xl font-bold text-gray-900">STONLEAF</h2>
+              <button
+                onClick={() => setShowAboutPopup(false)}
+                className="cursor-pointer text-gray-400 hover:text-gray-600"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+
+            {/* Content Area - Split Layout */}
+            <div className="flex-1 flex overflow-hidden">
+              {/* Left Side - Image (60%) */}
+              <div className="w-3/5 p-6 border-r border-gray-200 overflow-y-auto">
+                {/* Book Image */}
+                <Image
+                  src="/images/artwork_4.jpg"
+                  alt="About Us"
+                  width={500}
+                  height={500}
+                  className="w-full h-auto"
+                />
+              </div>
+
+              {/* Right Side - Text (40%) */}
+              <div className="w-2/5 p-6 overflow-y-auto">
+                <div className="space-y-6">
+                  <div>
+                    <h3 className="text-xl font-semibold text-gray-900 mb-4">ABOUT US</h3>
+                    <div className="space-y-3">
+                      <p className="text-gray-700 leading-relaxed">
+                        Your home is a reflection of who you are. The colors you choose, the furniture you love, and the art you hang on your walls—it all tells a story. At Stonleaf, we exist to help you tell yours.
+                      </p>
+
+                      <p className="text-gray-700 leading-relaxed">
+                        We are a team of curators and creators based in the United States, passionate about the power of visual storytelling.
+                        Every print that leaves our facility is inspected for color accuracy, sharpness, and durability.
+                        We use industry-leading paper and canvas stocks that ensure your art doesn't just look good today—it lasts a lifetime.
+                        We offer a diverse collection of prints designed to match every mood, season, and personality.
+                      </p>
+
+                      <p className="text-gray-700 leading-relaxed"> Whether you are redecorating your first apartment, styling a modern office, or looking for that perfect gift, Stonleaf provides the inspiration you need to make any space truly your own.  </p>
+                    </div>
+                  </div>
+                  {/* 
+                  <div className="space-y-4">
+                    <h4 className="text-lg font-semibold text-gray-900">About this site:</h4>
+
+                    <div className="space-y-3">
+                      <div>
+                        <h5 className="font-medium text-gray-900 mb-1">About Us</h5>
+                        <p className="text-gray-700 text-sm">
+                          To share his vision with the world, Dafe Benson established Stoneleaf,
+                          a premier online destination for art collectors and enthusiasts.
+                        </p>
+                      </div>
+
+                      <div>
+                        <h5 className="font-medium text-gray-900 mb-1">Stoneleaf</h5>
+                        <p className="text-gray-700 text-sm">
+                          Stoneleaf removes geographical barriers, allowing art lovers to discover
+                          and purchase their favorite pieces from anywhere on the globe. Whether you
+                          are seeking Dafe's signature editorial prints or unique digital works,
+                          the platform ensures a seamless experience, delivering high-quality art
+                          directly to your doorstep.
+                        </p>
+                      </div>
+                    </div>
+                  </div> */}
+
+                  {/* Key Features */}
+                  <div className="pt-4 border-t border-gray-200">
+                    <h4 className="text-lg font-semibold text-gray-900 mb-3">Why Choose Stoneleaf?</h4>
+                    <ul className="space-y-2">
+                      <li className="flex items-start">
+                        <span className="text-gray-900 mr-2">•</span>
+                        <span className="text-gray-700 text-sm">Global shipping with secure packaging</span>
+                      </li>
+                      <li className="flex items-start">
+                        <span className="text-gray-900 mr-2">•</span>
+                        <span className="text-gray-700 text-sm">Curated collection of exclusive artworks</span>
+                      </li>
+                      <li className="flex items-start">
+                        <span className="text-gray-900 mr-2">•</span>
+                        <span className="text-gray-700 text-sm">Digital and AR art experiences</span>
+                      </li>
+                      <li className="flex items-start">
+                        <span className="text-gray-900 mr-2">•</span>
+                        <span className="text-gray-700 text-sm">Direct support from the artist</span>
+                      </li>
+                    </ul>
+                  </div>
+
+                  {/* Call to Action */}
+                  <div className="pt-4 border-t border-gray-200">
+                    <p className="text-gray-700 text-sm mb-4">
+                      Join our community of art lovers and start your collection today.
+                    </p>
+                    <button
+                      onClick={() => {
+                        setShowAboutPopup(false);
+                        router.push('/shop');
+                      }}
+                      className="w-full bg-gray-900 text-white py-3 px-4 rounded-md hover:bg-gray-800 transition-colors duration-200 font-medium text-sm"
+                    >
+                      EXPLORE THE COLLECTION
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Auth Popup Modal */}
       {showAuthPopup && (

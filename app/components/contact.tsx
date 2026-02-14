@@ -117,7 +117,7 @@ export default function LetsTalk() {
               <div className="text-center">
                 <div className="flex justify-center mb-4">
                   <div className="w-12 h-12 flex items-center justify-center">
-                    <Award className="w-10 h-10 text-gray-800" strokeWidth={1.5} />
+                    <img src='/images/Icons/icon (6).png'  alt="User" />
                   </div>
                 </div>
                 <h3 className="text-xs font-semibold tracking-wider mb-2 text-gray-800">
@@ -132,7 +132,7 @@ export default function LetsTalk() {
               <div className="text-center">
                 <div className="flex justify-center mb-4">
                   <div className="w-12 h-12 flex items-center justify-center">
-                    <Frame className="w-10 h-10 text-gray-800" strokeWidth={1.5} />
+                    <img src='/images/Icons/icon (5).png'  alt="User" />
                   </div>
                 </div>
                 <h3 className="text-xs font-semibold tracking-wider mb-2 text-gray-800">
@@ -147,7 +147,7 @@ export default function LetsTalk() {
               <div className="text-center">
                 <div className="flex justify-center mb-4">
                   <div className="w-12 h-12 flex items-center justify-center">
-                    <Truck className="w-10 h-10 text-gray-800" strokeWidth={1.5} />
+                    <img src='/images/Icons/icon (4).png' alt="User" />
                   </div>
                 </div>
                 <h3 className="text-xs font-semibold tracking-wider mb-2 text-gray-800">
@@ -167,14 +167,14 @@ export default function LetsTalk() {
 
             {/* Main CTA */}
             <div className="max-w-xl">
-              <h2 className="text-lg md:text-md font-light tracking-[0.2em] text-gray-800 mb-8 leading-relaxed">
+              <h2 className="text-md md:text-md font-light tracking-[0.2em] text-gray-800 mb-8 leading-relaxed">
                 CURATE YOU NEXT COLLECTION WITH US.
               </h2>
 
               <div className='w-60 mx-auto text-center'>
                 <button
                   onClick={() => setShowPopup(true)}
-                  className="cursor-pointer bg-gray-900 text-white px-10 py-3 text-sm font-medium tracking-[0.15em] hover:bg-gray-800 transition-colors duration-300"
+                  className="cursor-pointer bg-gray-900 text-white px-2 py-1 text-sm font-medium tracking-[0.15em] hover:bg-gray-800 transition-colors duration-300 rounded-md "
                 >
                   LET'S TALK
                 </button>

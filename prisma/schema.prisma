@@ -77,3 +77,15 @@ model OrderItem {
   
   @@unique([orderId, productId])
 }
+
+model Post {
+  id        String   @id @default(cuid())
+  title     String
+  slug      String   @unique
+  excerpt   String?
+  content   String
+  imageUrl  String?
+  author    String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

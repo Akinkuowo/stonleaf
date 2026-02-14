@@ -15,7 +15,7 @@ export default function Gallery() {
   ]
 
   return (
-    <section id="gallery" className="px-14 py-16 md:py-24 bg-gray-50">
+    <section id="gallery" className="px-14 py-19 md:py-24 bg-gray-50">
       <div className="container mx-auto ">
         {/* Header */}
         <div className="text-center mb-16">
@@ -25,7 +25,7 @@ export default function Gallery() {
         </div>
 
         {/* Gallery Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 max-w-7xl mx-auto">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-10 md:gap-8 max-w-7xl mx-auto">
           {galleryItems.map((item) => (
             <div
               key={item.id}
