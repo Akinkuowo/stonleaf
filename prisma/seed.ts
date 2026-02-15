@@ -12,6 +12,7 @@ async function main() {
       category: 'Canvas Art',
       imageUrl: '/images/artwork.webp',
       stock: 10,
+      artist: 'Leonardo da Vinci', // Mock artist based on UI
     },
     {
       name: 'BEL-AIR VILLA',
@@ -20,6 +21,7 @@ async function main() {
       category: 'Photo Art',
       imageUrl: '/images/artwork_2.webp',
       stock: 5,
+      artist: 'Vincent van Gogh',
     },
     {
       name: 'AFTERGLOW',
@@ -28,6 +30,7 @@ async function main() {
       category: 'Digital Art',
       imageUrl: '/images/arkwork_3.jpg',
       stock: 8,
+      artist: 'Leonardo da Vinci',
     },
     {
       name: 'MOUNTAIN VISTA',
@@ -36,6 +39,7 @@ async function main() {
       category: 'Photo Art',
       imageUrl: '/images/artwork_4.jpg',
       stock: 12,
+      artist: 'Edvard Munch',
     },
     {
       name: 'URBAN JUNGLE',
@@ -44,6 +48,7 @@ async function main() {
       category: 'Digital Art',
       imageUrl: '/images/arkwork_5.webp',
       stock: 7,
+      artist: 'Tech Art Studio',
     },
     {
       name: 'GOLDEN HOUR',
@@ -52,14 +57,16 @@ async function main() {
       category: 'Canvas Art',
       imageUrl: '/images/artwork_6.jpg',
       stock: 3,
+      artist: 'Johannes Vermeer',
     },
     {
       name: 'ABSTRACT WAVES',
       description: 'Fluid motion captured in art.',
       price: 520,
-      category: 'Abstract',
+      category: 'Abstract', // Note: UI uses 'digital' or 'ar' categories in mock data, but db has 'Abstract'. Should map consistently.
       imageUrl: '/images/artwork_7.jpg',
       stock: 9,
+      artist: 'Gustav Klimt',
     },
     {
       name: 'VINTAGE PORTRAIT',
@@ -68,6 +75,7 @@ async function main() {
       category: 'Photo Art',
       imageUrl: '/images/artwork_8.jpeg',
       stock: 6,
+      artist: 'Vincent van Gogh',
     }
   ]
 

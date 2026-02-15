@@ -41,6 +41,7 @@ model Product {
   price       Float
   category    String
   imageUrl    String?
+  artist      String?
   stock       Int      @default(0)
   isActive    Boolean  @default(true)
   createdAt   DateTime @default(now())

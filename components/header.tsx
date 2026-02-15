@@ -98,7 +98,7 @@ export default function Header() {
           }
         },
         { label: 'Blog', category: null, href: '/blog' },
-        { label: 'DIY Hang', category: null, href: '/ diy-hang' }
+        { label: 'DIY Hang', category: null, href: '/diy-hang' }
       ]
     }
   ];

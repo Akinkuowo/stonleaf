@@ -1,15 +1,32 @@
 
-import { PrismaClient } from '@prisma/client'
+// import { prisma } from '@/lib/prisma'
 import Link from 'next/link'
 import Image from 'next/image'
 
-const prisma = new PrismaClient()
+// Mock data for testing
+const MOCK_POSTS = [
+    {
+        id: '1',
+        title: 'Test Post 1',
+        slug: 'test-post-1',
+        imageUrl: null,
+        createdAt: new Date(),
+    },
+    {
+        id: '2',
+        title: 'Test Post 2',
+        slug: 'test-post-2',
+        imageUrl: null,
+        createdAt: new Date(),
+    }
+]
 
 async function getPosts() {
-    const posts = await prisma.post.findMany({
-        orderBy: { createdAt: 'desc' },
-    })
-    return posts
+    // const posts = await prisma.post.findMany({
+    //     orderBy: { createdAt: 'desc' },
+    // })
+    // return posts
+    return MOCK_POSTS
 }
 
 export default async function BlogPage() {
