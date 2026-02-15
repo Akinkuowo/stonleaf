@@ -1,20 +1,16 @@
-import { prisma } from '@/lib/prisma'
 import Header from "@/components/header";
-import ShopPage from "../components/shop";
 import Footer from "@/components/footer";
 
-async function getProducts() {
-    const products = await prisma.product.findMany();
-    return products;
-}
-
-export default async function Shop() {
-    const products = await getProducts();
-
+export default function Shop() {
     return (
         <>
             <Header />
-            <ShopPage initialProducts={products} />
+            <div className="min-h-screen flex items-center justify-center">
+                <div className="text-center">
+                    <h1 className="text-4xl font-bold mb-4">Shop Page Test</h1>
+                    <p className="text-gray-600">If you can see this, the basic rendering works.</p>
+                </div>
+            </div>
             <Footer />
         </>
     )

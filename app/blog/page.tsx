@@ -10,14 +10,14 @@ const MOCK_POSTS = [
         title: 'Test Post 1',
         slug: 'test-post-1',
         imageUrl: null,
-        createdAt: new Date(),
+        createdAt: '2024-01-01',
     },
     {
         id: '2',
         title: 'Test Post 2',
         slug: 'test-post-2',
         imageUrl: null,
-        createdAt: new Date(),
+        createdAt: '2024-01-02',
     }
 ]
 

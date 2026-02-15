@@ -7,7 +7,7 @@ import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 
 type MenuId = 'shop' | 'partners' | 'sellers' | 'about' | null;
-type AuthMode = 'signin' | 'signup' | null;
+type AuthMode = 'signin' | 'signup' | 'artist' | 'marketer' | null;
 type CategoryType = 'all' | 'canvas' | 'photo' | 'digital' | 'ar';
 
 interface MenuItem {
@@ -45,7 +45,10 @@ export default function Header() {
     password: '',
     confirmPassword: '',
     name: '',
-    country: ''
+    country: '',
+    bio: '',
+    portfolioUrl: '',
+    instagramHandle: ''
   });
   const [authError, setAuthError] = useState<string | null>(null);
 
@@ -81,8 +84,22 @@ export default function Header() {
       id: 'sellers' as const,
       label: 'JOIN OUR SELLERS',
       items: [
-        { label: 'I am an Artist', category: null, href: '/become-an-artist' },
-        { label: 'I am a Marketer', category: null, href: '/become-a-marketer' }
+        {
+          label: 'I am an Artist',
+          category: null,
+          onClick: () => {
+            setShowAuthPopup('artist');
+            setHoveredMenu(null);
+          }
+        },
+        {
+          label: 'I am a Marketer',
+          category: null,
+          onClick: () => {
+            setShowAuthPopup('marketer');
+            setHoveredMenu(null);
+          }
+        }
       ]
     },
     {
@@ -199,12 +216,20 @@ export default function Header() {
       const result = await signIn(formData.email, formData.password);
       if (result.success) {
         setShowAuthPopup(null);
-        setFormData({ email: '', password: '', confirmPassword: '', name: '', country: '' });
-        window.location.reload();
+        setFormData({ email: '', password: '', confirmPassword: '', name: '', country: '', bio: '', portfolioUrl: '', instagramHandle: '' });
+
+        // Redirect based on role
+        if (result.user?.role === 'ARTIST') {
+          window.location.href = '/dashboard/artist';
+        } else if (result.user?.role === 'MARKETER') {
+          window.location.href = '/dashboard/marketer';
+        } else {
+          window.location.href = '/dashboard/customer';
+        }
       } else {
         setAuthError(result.error || 'Sign in failed');
       }
-    } else {
+    } else if (showAuthPopup === 'signup') {
       if (formData.password !== formData.confirmPassword) {
         setAuthError('Passwords do not match');
         return;
@@ -219,10 +244,71 @@ export default function Header() {
 
       if (result.success) {
         setShowAuthPopup(null);
-        setFormData({ email: '', password: '', confirmPassword: '', name: '', country: '' });
-        window.location.reload();
+        setFormData({ email: '', password: '', confirmPassword: '', name: '', country: '', bio: '', portfolioUrl: '', instagramHandle: '' });
+        window.location.href = '/dashboard/customer';
       } else {
         setAuthError(result.error || 'Sign up failed');
+      }
+    } else if (showAuthPopup === 'artist') {
+      if (formData.password !== formData.confirmPassword) {
+        setAuthError('Passwords do not match');
+        return;
+      }
+
+      try {
+        const response = await fetch('/api/auth/become-artist', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: formData.name,
+            email: formData.email,
+            password: formData.password,
+            bio: formData.bio,
+            portfolioUrl: formData.portfolioUrl,
+            instagramHandle: formData.instagramHandle,
+          }),
+        });
+
+        const data = await response.json();
+        if (response.ok) {
+          localStorage.setItem('token', data.token);
+          setShowAuthPopup(null);
+          setFormData({ email: '', password: '', confirmPassword: '', name: '', country: '', bio: '', portfolioUrl: '', instagramHandle: '' });
+          window.location.href = '/dashboard/artist';
+        } else {
+          setAuthError(data.error || 'Failed to register as artist');
+        }
+      } catch (error) {
+        setAuthError('Network error. Please try again.');
+      }
+    } else if (showAuthPopup === 'marketer') {
+      if (formData.password !== formData.confirmPassword) {
+        setAuthError('Passwords do not match');
+        return;
+      }
+
+      try {
+        const response = await fetch('/api/auth/become-marketer', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: formData.name,
+            email: formData.email,
+            password: formData.password,
+          }),
+        });
+
+        const data = await response.json();
+        if (response.ok) {
+          localStorage.setItem('token', data.token);
+          setShowAuthPopup(null);
+          setFormData({ email: '', password: '', confirmPassword: '', name: '', country: '', bio: '', portfolioUrl: '', instagramHandle: '' });
+          window.location.href = '/dashboard/marketer';
+        } else {
+          setAuthError(data.error || 'Failed to register as marketer');
+        }
+      } catch (error) {
+        setAuthError('Network error. Please try again.');
       }
     }
   };

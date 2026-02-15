@@ -15,6 +15,9 @@ interface Product {
   imageUrl: string | null;
   artist: string | null;
   stock: number;
+  isActive?: boolean;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 interface ShopPageProps {
