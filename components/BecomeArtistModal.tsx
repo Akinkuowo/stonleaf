@@ -89,87 +89,87 @@ export default function BecomeArtistModal({ isOpen, onClose }: BecomeArtistModal
 
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div>
-                        <label className="block text-sm font-medium mb-2">Full Name</label>
+                        <label className="block text-sm font-medium mb-2 text-black">Artist Name</label>
                         <input
                             type="text"
                             name="name"
                             value={formData.name}
                             onChange={handleChange}
-                            className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-black"
+                            className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-black text-black"
                             required
                         />
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium mb-2">Email</label>
+                        <label className="block text-sm font-medium mb-2 text-black">Email</label>
                         <input
                             type="email"
                             name="email"
                             value={formData.email}
                             onChange={handleChange}
-                            className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-black"
+                            className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-black text-black"
                             required
                         />
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium mb-2">Password</label>
+                        <label className="block text-sm font-medium mb-2 text-black">Password</label>
                         <input
                             type="password"
                             name="password"
                             value={formData.password}
                             onChange={handleChange}
-                            className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-black"
+                            className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-black text-black"
                             required
                             minLength={6}
                         />
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium mb-2">Confirm Password</label>
+                        <label className="block text-sm font-medium mb-2 text-black">Confirm Password</label>
                         <input
                             type="password"
                             name="confirmPassword"
                             value={formData.confirmPassword}
                             onChange={handleChange}
-                            className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-black"
+                            className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-black text-black"
                             required
                             minLength={6}
                         />
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium mb-2">Bio</label>
+                        <label className="block text-sm font-medium mb-2 text-black">Bio</label>
                         <textarea
                             name="bio"
                             value={formData.bio}
                             onChange={handleChange}
                             rows={3}
-                            className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-black resize-none"
+                            className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-black resize-none text-black"
                             placeholder="Tell us about your art..."
                         />
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium mb-2">Portfolio URL (Optional)</label>
+                        <label className="block text-sm font-medium mb-2 text-black">Portfolio URL (Optional)</label>
                         <input
                             type="url"
                             name="portfolioUrl"
                             value={formData.portfolioUrl}
                             onChange={handleChange}
-                            className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-black"
+                            className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-black text-black"
                             placeholder="https://yourportfolio.com"
                         />
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium mb-2">Instagram Handle (Optional)</label>
+                        <label className="block text-sm font-medium mb-2 text-black">Instagram Handle (Optional)</label>
                         <input
                             type="text"
                             name="instagramHandle"
                             value={formData.instagramHandle}
                             onChange={handleChange}
-                            className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-black"
+                            className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-black text-black"
                             placeholder="@yourhandle"
                         />
                     </div>

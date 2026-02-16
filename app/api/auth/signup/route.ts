@@ -45,7 +45,8 @@ export async function POST(request: NextRequest) {
       id: user.id,
       email: user.email,
       name: user.name || undefined,
-      country: user.country || undefined
+      country: user.country || undefined,
+      role: user.role
     })
 
     // Remove password hash from response

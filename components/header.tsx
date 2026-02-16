@@ -5,9 +5,11 @@ import { Search, X, Mail, Lock, Eye, EyeOff } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
+import BecomeArtistModal from '@/components/BecomeArtistModal';
+import BecomeMarketerModal from '@/components/BecomeMarketerModal';
 
 type MenuId = 'shop' | 'partners' | 'sellers' | 'about' | null;
-type AuthMode = 'signin' | 'signup' | 'artist' | 'marketer' | null;
+type AuthMode = 'signin' | 'signup' | null;
 type CategoryType = 'all' | 'canvas' | 'photo' | 'digital' | 'ar';
 
 interface MenuItem {
@@ -38,6 +40,8 @@ export default function Header() {
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
   const [showAuthPopup, setShowAuthPopup] = useState<AuthMode>(null);
+  const [isArtistModalOpen, setIsArtistModalOpen] = useState(false);
+  const [isMarketerModalOpen, setIsMarketerModalOpen] = useState(false);
   const [showAboutPopup, setShowAboutPopup] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
@@ -45,10 +49,7 @@ export default function Header() {
     password: '',
     confirmPassword: '',
     name: '',
-    country: '',
-    bio: '',
-    portfolioUrl: '',
-    instagramHandle: ''
+    country: ''
   });
   const [authError, setAuthError] = useState<string | null>(null);
 
@@ -88,7 +89,7 @@ export default function Header() {
           label: 'I am an Artist',
           category: null,
           onClick: () => {
-            setShowAuthPopup('artist');
+            setIsArtistModalOpen(true);
             setHoveredMenu(null);
           }
         },
@@ -96,7 +97,7 @@ export default function Header() {
           label: 'I am a Marketer',
           category: null,
           onClick: () => {
-            setShowAuthPopup('marketer');
+            setIsMarketerModalOpen(true);
             setHoveredMenu(null);
           }
         }
@@ -216,7 +217,7 @@ export default function Header() {
       const result = await signIn(formData.email, formData.password);
       if (result.success) {
         setShowAuthPopup(null);
-        setFormData({ email: '', password: '', confirmPassword: '', name: '', country: '', bio: '', portfolioUrl: '', instagramHandle: '' });
+        setFormData({ email: '', password: '', confirmPassword: '', name: '', country: '' });
 
         // Redirect based on role
         if (result.user?.role === 'ARTIST') {
@@ -244,71 +245,10 @@ export default function Header() {
 
       if (result.success) {
         setShowAuthPopup(null);
-        setFormData({ email: '', password: '', confirmPassword: '', name: '', country: '', bio: '', portfolioUrl: '', instagramHandle: '' });
+        setFormData({ email: '', password: '', confirmPassword: '', name: '', country: '' });
         window.location.href = '/dashboard/customer';
       } else {
         setAuthError(result.error || 'Sign up failed');
-      }
-    } else if (showAuthPopup === 'artist') {
-      if (formData.password !== formData.confirmPassword) {
-        setAuthError('Passwords do not match');
-        return;
-      }
-
-      try {
-        const response = await fetch('/api/auth/become-artist', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            name: formData.name,
-            email: formData.email,
-            password: formData.password,
-            bio: formData.bio,
-            portfolioUrl: formData.portfolioUrl,
-            instagramHandle: formData.instagramHandle,
-          }),
-        });
-
-        const data = await response.json();
-        if (response.ok) {
-          localStorage.setItem('token', data.token);
-          setShowAuthPopup(null);
-          setFormData({ email: '', password: '', confirmPassword: '', name: '', country: '', bio: '', portfolioUrl: '', instagramHandle: '' });
-          window.location.href = '/dashboard/artist';
-        } else {
-          setAuthError(data.error || 'Failed to register as artist');
-        }
-      } catch (error) {
-        setAuthError('Network error. Please try again.');
-      }
-    } else if (showAuthPopup === 'marketer') {
-      if (formData.password !== formData.confirmPassword) {
-        setAuthError('Passwords do not match');
-        return;
-      }
-
-      try {
-        const response = await fetch('/api/auth/become-marketer', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            name: formData.name,
-            email: formData.email,
-            password: formData.password,
-          }),
-        });
-
-        const data = await response.json();
-        if (response.ok) {
-          localStorage.setItem('token', data.token);
-          setShowAuthPopup(null);
-          setFormData({ email: '', password: '', confirmPassword: '', name: '', country: '', bio: '', portfolioUrl: '', instagramHandle: '' });
-          window.location.href = '/dashboard/marketer';
-        } else {
-          setAuthError(data.error || 'Failed to register as marketer');
-        }
-      } catch (error) {
-        setAuthError('Network error. Please try again.');
       }
     }
   };
@@ -319,7 +259,7 @@ export default function Header() {
     setFormData(prev => ({ ...prev, password: '', confirmPassword: '' }));
   };
 
-  const openAuthPopup = (mode: AuthMode) => {
+  const openAuthPopup = (mode: 'signin' | 'signup') => {
     setShowAuthPopup(mode);
     setUserDropdownOpen(false);
     setAuthError(null);
@@ -867,6 +807,8 @@ export default function Header() {
           </div>
         </div>
       )}
+      <BecomeArtistModal isOpen={isArtistModalOpen} onClose={() => setIsArtistModalOpen(false)} />
+      <BecomeMarketerModal isOpen={isMarketerModalOpen} onClose={() => setIsMarketerModalOpen(false)} />
     </div>
   );
 }
