@@ -1,16 +1,34 @@
+
 import Header from "@/components/header";
 import Footer from "@/components/footer";
+import ShopPage from "../components/shop";
 
-export default function Shop() {
+export default async function Shop() {
+    const apiUrl = `${process.env.NEXTAUTH_URL || 'http://localhost:3000'} /api/artworks ? limit = 50`;
+    let products = [];
+
+    try {
+        const res = await fetch(apiUrl, {
+            cache: 'no-store'
+        });
+
+        if (!res.ok) {
+            const errorText = await res.text();
+            console.error(`Fetch failed with status ${res.status}: ${errorText.substring(0, 200)} `);
+            throw new Error(`API returned ${res.status} `);
+        }
+
+        const data = await res.json();
+        products = data.artworks || [];
+    } catch (error) {
+        console.error('Error fetching artworks in Shop page:', error);
+        // Fallback to empty array or show error message
+    }
+
     return (
         <>
             <Header />
-            <div className="min-h-screen flex items-center justify-center">
-                <div className="text-center">
-                    <h1 className="text-4xl font-bold mb-4">Shop Page Test</h1>
-                    <p className="text-gray-600">If you can see this, the basic rendering works.</p>
-                </div>
-            </div>
+            <ShopPage initialProducts={products} />
             <Footer />
         </>
     )
