@@ -7,235 +7,14 @@ import { FiInstagram, FiFacebook, FiMail, FiChevronLeft, FiChevronRight, FiShopp
 import { FaTiktok, FaPinterest, FaRegHeart, FaHeart } from 'react-icons/fa';
 import Image from 'next/image';
 
-// Mock database of artworks
-const ARTWORK_DATABASE = [
-  { 
-    id: 1, 
-    title: 'Mona Lisa', 
-    artist: 'Leonardo da Vinci', 
-    year: '1503–1506',
-    price: 450, 
-    originalPrice: 520,
-    discount: '15% OFF',
-    description: 'The Mona Lisa is a half-length portrait painting by Italian artist Leonardo da Vinci. Considered an archetypal masterpiece of the Italian Renaissance, it has been described as "the best known, the most visited, the most written about, the most sung about, the most parodied work of art in the world."',
-    details: 'Oil on poplar panel • 77 cm × 53 cm • Currently housed in the Louvre Museum, Paris',
-    image: '/images/artwork_1.jpg',
-    images: [
-      '/images/artwork_1_detail_1.jpg',
-      '/images/artwork_1_detail_2.jpg',
-      '/images/artwork_1_detail_3.jpg'
-    ],
-    dimensions: [
-      { label: 'Canvas Print', size: '12" x 16"' },
-      { label: 'Framed Print', size: '18" x 24"' },
-      { label: 'Premium Canvas', size: '24" x 36"' }
-    ],
-    frameOptions: [
-      { name: 'Classic Black', color: 'bg-black' },
-      { name: 'Natural Wood', color: 'bg-amber-800' },
-      { name: 'Modern White', color: 'bg-white border border-gray-300' },
-      { name: 'Gold Leaf', color: 'bg-yellow-600' }
-    ],
-    category: 'Canvas Art',
-    tags: ['Renaissance', 'Portrait', 'Masterpiece', 'Italian Art'],
-    rating: 4.9,
-    reviews: 128,
-    inStock: true,
-    stockCount: 15,
-    isNew: false,
-    isFeatured: true
-  },
-  { 
-    id: 2, 
-    title: 'Starry Night', 
-    artist: 'Vincent van Gogh', 
-    year: '1889',
-    price: 380, 
-    originalPrice: 450,
-    discount: '20% OFF',
-    description: 'The Starry Night is an oil-on-canvas painting by the Dutch Post-Impressionist painter Vincent van Gogh. Painted in June 1889, it depicts the view from the east-facing window of his asylum room at Saint-Rémy-de-Provence, just before sunrise, with the addition of an idealized village.',
-    details: 'Oil on canvas • 73.7 cm × 92.1 cm • Currently in the Museum of Modern Art, New York',
-    image: '/images/artwork_2.jpg',
-    images: [
-      '/images/artwork_2_detail_1.jpg',
-      '/images/artwork_2_detail_2.jpg',
-      '/images/artwork_2_detail_3.jpg'
-    ],
-    dimensions: [
-      { label: 'Canvas Print', size: '12" x 16"' },
-      { label: 'Framed Print', size: '18" x 24"' },
-      { label: 'Premium Canvas', size: '24" x 36"' }
-    ],
-    frameOptions: [
-      { name: 'Classic Black', color: 'bg-black' },
-      { name: 'Natural Wood', color: 'bg-amber-800' },
-      { name: 'Modern White', color: 'bg-white border border-gray-300' },
-      { name: 'Silver Metal', color: 'bg-gray-400' }
-    ],
-    category: 'Canvas Art',
-    tags: ['Post-Impressionism', 'Landscape', 'Night', 'Dutch Art'],
-    rating: 4.8,
-    reviews: 96,
-    inStock: true,
-    stockCount: 23,
-    isNew: true,
-    isFeatured: true
-  },
-  { 
-    id: 3, 
-    title: 'The Scream', 
-    artist: 'Edvard Munch', 
-    year: '1893',
-    price: 520, 
-    originalPrice: 600,
-    discount: '13% OFF',
-    description: 'The Scream is a composition created by Norwegian artist Edvard Munch in 1893. The agonized face in the painting has become one of the most iconic images of art, seen as symbolizing the anxiety of the human condition.',
-    details: 'Oil, tempera, and pastel on cardboard • 91 cm × 73.5 cm • National Gallery, Oslo',
-    image: '/images/artwork_3.jpg',
-    images: [
-      '/images/artwork_3_detail_1.jpg',
-      '/images/artwork_3_detail_2.jpg',
-      '/images/artwork_3_detail_3.jpg'
-    ],
-    dimensions: [
-      { label: 'Canvas Print', size: '12" x 16"' },
-      { label: 'Framed Print', size: '18" x 24"' },
-      { label: 'Premium Canvas', size: '24" x 36"' }
-    ],
-    frameOptions: [
-      { name: 'Classic Black', color: 'bg-black' },
-      { name: 'Dark Walnut', color: 'bg-gray-800' },
-      { name: 'Minimalist', color: 'bg-white border-2 border-gray-800' }
-    ],
-    category: 'Canvas Art',
-    tags: ['Expressionism', 'Modern Art', 'Iconic', 'Norwegian Art'],
-    rating: 4.7,
-    reviews: 84,
-    inStock: true,
-    stockCount: 8,
-    isNew: false,
-    isFeatured: true
-  },
-  { 
-    id: 4, 
-    title: 'Girl with a Pearl Earring', 
-    artist: 'Johannes Vermeer', 
-    year: '1665',
-    price: 420, 
-    originalPrice: 480,
-    discount: '12% OFF',
-    description: 'Girl with a Pearl Earring is an oil painting by Dutch Golden Age painter Johannes Vermeer, dated c. 1665. Going by various names over the centuries, it became known by its present title towards the end of the 20th century after the earring worn by the girl portrayed there.',
-    details: 'Oil on canvas • 44.5 cm × 39 cm • Mauritshuis, The Hague',
-    image: '/images/artwork_4.jpg',
-    images: [
-      '/images/artwork_4_detail_1.jpg',
-      '/images/artwork_4_detail_2.jpg',
-      '/images/artwork_4_detail_3.jpg'
-    ],
-    dimensions: [
-      { label: 'Canvas Print', size: '12" x 16"' },
-      { label: 'Framed Print', size: '18" x 24"' },
-      { label: 'Premium Canvas', size: '24" x 36"' }
-    ],
-    frameOptions: [
-      { name: 'Classic Black', color: 'bg-black' },
-      { name: 'Antique Gold', color: 'bg-yellow-700' },
-      { name: 'Dark Wood', color: 'bg-gray-900' }
-    ],
-    category: 'Canvas Art',
-    tags: ['Dutch Golden Age', 'Portrait', 'Baroque', 'Tronie'],
-    rating: 4.9,
-    reviews: 112,
-    inStock: true,
-    stockCount: 17,
-    isNew: false,
-    isFeatured: true
-  },
-  { 
-    id: 5, 
-    title: 'The Persistence of Memory', 
-    artist: 'Salvador Dali', 
-    year: '1931',
-    price: 490, 
-    originalPrice: 550,
-    discount: '11% OFF',
-    description: 'The Persistence of Memory is a 1931 painting by artist Salvador Dalí, and is one of his most recognizable works. The first soft watches appear in this piece, which has become an iconic symbol of Surrealism.',
-    details: 'Oil on canvas • 24 cm × 33 cm • Museum of Modern Art, New York',
-    image: '/images/artwork_5.jpg',
-    images: [
-      '/images/artwork_5_detail_1.jpg',
-      '/images/artwork_5_detail_2.jpg',
-      '/images/artwork_5_detail_3.jpg'
-    ],
-    dimensions: [
-      { label: 'Canvas Print', size: '12" x 16"' },
-      { label: 'Framed Print', size: '18" x 24"' },
-      { label: 'Premium Canvas', size: '24" x 36"' }
-    ],
-    frameOptions: [
-      { name: 'Classic Black', color: 'bg-black' },
-      { name: 'Surreal Gold', color: 'bg-yellow-600' },
-      { name: 'Modern Silver', color: 'bg-gray-300' }
-    ],
-    category: 'Canvas Art',
-    tags: ['Surrealism', 'Modern Art', 'Iconic', 'Spanish Art'],
-    rating: 4.8,
-    reviews: 91,
-    inStock: true,
-    stockCount: 12,
-    isNew: true,
-    isFeatured: true
-  },
-  { 
-    id: 6, 
-    title: 'The Kiss', 
-    artist: 'Gustav Klimt', 
-    year: '1907–1908',
-    price: 560, 
-    originalPrice: 650,
-    discount: '14% OFF',
-    description: 'The Kiss is an oil-on-canvas painting with added gold leaf, silver and platinum by the Austrian Symbolist painter Gustav Klimt. It was painted at the height of his "Golden Period" when he painted a number of works in a similar gilded style.',
-    details: 'Oil and gold leaf on canvas • 180 cm × 180 cm • Österreichische Galerie Belvedere, Vienna',
-    image: '/images/artwork_6.jpg',
-    images: [
-      '/images/artwork_6_detail_1.jpg',
-      '/images/artwork_6_detail_2.jpg',
-      '/images/artwork_6_detail_3.jpg'
-    ],
-    dimensions: [
-      { label: 'Canvas Print', size: '12" x 16"' },
-      { label: 'Framed Print', size: '18" x 24"' },
-      { label: 'Premium Canvas', size: '24" x 36"' }
-    ],
-    frameOptions: [
-      { name: 'Classic Black', color: 'bg-black' },
-      { name: 'Gold Leaf', color: 'bg-yellow-600' },
-      { name: 'Art Deco', color: 'bg-gray-700' }
-    ],
-    category: 'Canvas Art',
-    tags: ['Art Nouveau', 'Symbolism', 'Golden Period', 'Austrian Art'],
-    rating: 4.9,
-    reviews: 105,
-    inStock: true,
-    stockCount: 9,
-    isNew: false,
-    isFeatured: true
-  }
-];
-
-// Related artworks for the recommendations section
-const RELATED_ARTWORKS = [
-  { id: 7, title: 'The Birth of Venus', artist: 'Sandro Botticelli', price: 480, image: '/images/related_1.jpg' },
-  { id: 8, title: 'American Gothic', artist: 'Grant Wood', price: 390, image: '/images/related_2.jpg' },
-  { id: 9, title: 'The Night Watch', artist: 'Rembrandt', price: 530, image: '/images/related_3.jpg' },
-  { id: 10, title: 'Water Lilies', artist: 'Claude Monet', price: 410, image: '/images/related_4.jpg' }
-];
+import { useCart } from '@/context/CartContext';
 
 export default function ArtworkDetailsPage() {
   const router = useRouter();
   const params = useParams();
-  const artworkId = parseInt(params.id as string);
-  
+  const artworkId = params.id as string;
+  const { addItem } = useCart();
+
   const [artwork, setArtwork] = useState<any>(null);
   const [selectedImage, setSelectedImage] = useState(0);
   const [selectedFrame, setSelectedFrame] = useState(0);
@@ -243,27 +22,79 @@ export default function ArtworkDetailsPage() {
   const [quantity, setQuantity] = useState(1);
   const [isLiked, setIsLiked] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  
+
   useEffect(() => {
-    // Simulate API call
-    setTimeout(() => {
-      const foundArtwork = ARTWORK_DATABASE.find(art => art.id === artworkId);
-      if (foundArtwork) {
-        setArtwork(foundArtwork);
-      } else {
-        // Redirect to shop if artwork not found
-        router.push('/shop');
+    const fetchArtwork = async () => {
+      try {
+        setIsLoading(true);
+        const res = await fetch(`/api/artworks/${artworkId}`);
+
+        if (!res.ok) {
+          if (res.status === 404) {
+            console.warn('Artwork not found, redirecting...');
+            router.push('/shop');
+          } else {
+            throw new Error(`Failed to fetch artwork: ${res.status}`);
+          }
+          return;
+        }
+
+        const data = await res.json();
+
+        // Map database fields to component fields for UI compatibility
+        const mappedArtwork = {
+          ...data,
+          title: data.name,
+          image: data.imageUrl || '/images/placeholder.jpg',
+          images: data.imageUrl ? [data.imageUrl] : [], // Default to main image if others are missing
+          dimensions: [
+            { label: 'Standard', size: '12" x 16"' },
+            { label: 'Large', size: '18" x 24"' },
+            { label: 'Extra Large', size: '24" x 36"' }
+          ],
+          frameOptions: [
+            { name: 'Classic Black', color: 'bg-black' },
+            { name: 'Natural Wood', color: 'bg-amber-800' },
+            { name: 'Modern White', color: 'bg-white border border-gray-300' }
+          ],
+          tags: [data.category],
+          rating: 5.0,
+          reviews: 0,
+          inStock: data.stock > 0,
+          stockCount: data.stock,
+          details: data.description ? 'Premium quality print' : '',
+        };
+
+        setArtwork(mappedArtwork);
+      } catch (err) {
+        console.error('Error fetching artwork details:', err);
+      } finally {
+        setIsLoading(false);
       }
-      setIsLoading(false);
-    }, 300);
+    };
+
+    if (artworkId) {
+      fetchArtwork();
+    }
   }, [artworkId, router]);
-  
+
   const handleAddToCart = () => {
-    alert(`Added ${quantity} ${artwork.title} to cart!`);
+    if (!artwork) return;
+
+    addItem({
+      id: artwork.id,
+      title: artwork.title,
+      price: artwork.price,
+      quantity: quantity,
+      image: artwork.image,
+      artist: artwork.artist,
+    });
+
+    router.push('/cart');
   };
-  
- 
-  
+
+
+
   const handleShare = () => {
     if (navigator.share) {
       navigator.share({
@@ -276,25 +107,25 @@ export default function ArtworkDetailsPage() {
       alert('Link copied to clipboard!');
     }
   };
-  
+
   const handleNextImage = () => {
     setSelectedImage((prev) => (prev + 1) % (artwork?.images?.length || 1));
   };
-  
+
   const handlePrevImage = () => {
     setSelectedImage((prev) => (prev - 1 + (artwork?.images?.length || 1)) % (artwork?.images?.length || 1));
   };
-  
+
   const handleIncrementQuantity = () => {
     setQuantity(prev => prev + 1);
   };
-  
+
   const handleDecrementQuantity = () => {
     if (quantity > 1) {
       setQuantity(prev => prev - 1);
     }
   };
-  
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -302,12 +133,12 @@ export default function ArtworkDetailsPage() {
       </div>
     );
   }
-  
+
   if (!artwork) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center">
         <h1 className="text-2xl font-bold mb-4">Artwork Not Found</h1>
-        <button 
+        <button
           onClick={() => router.push('/shop')}
           className="px-6 py-3 bg-black text-white rounded-md hover:bg-gray-800 transition"
         >
@@ -316,13 +147,13 @@ export default function ArtworkDetailsPage() {
       </div>
     );
   }
-  
+
   return (
     <div className="min-h-screen bg-white">
       {/* Navigation Back */}
       <div className="border-b border-gray-200 py-4">
         <div className="container mx-auto px-4">
-          <button 
+          <button
             onClick={() => router.back()}
             className="flex items-center text-gray-600 hover:text-black transition"
           >
@@ -331,7 +162,7 @@ export default function ArtworkDetailsPage() {
           </button>
         </div>
       </div>
-      
+
       {/* Main Artwork Content */}
       <div className="container mx-auto px-4 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
@@ -339,29 +170,30 @@ export default function ArtworkDetailsPage() {
           <div>
             {/* Main Image */}
             <div className="relative aspect-square bg-gray-100 rounded-lg overflow-hidden mb-4">
-              <div className="w-full h-full flex items-center justify-center text-gray-400">
-                {/* Main artwork image placeholder */}
-                <div className="text-center">
-                  <div className="text-4xl mb-2">🖼️</div>
-                  <p className="text-sm">{artwork.title}</p>
-                  <p className="text-xs text-gray-500">Click images to zoom</p>
-                </div>
+              <div className="w-full h-full relative">
+                <Image
+                  src={artwork.image}
+                  alt={artwork.title}
+                  fill
+                  className="object-cover"
+                  unoptimized
+                />
               </div>
-              
+
               {/* Navigation Arrows */}
-              <button 
+              <button
                 onClick={handlePrevImage}
                 className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-white/80 hover:bg-white p-2 rounded-full shadow-md transition"
               >
                 <FiChevronLeft className="text-xl" />
               </button>
-              <button 
+              <button
                 onClick={handleNextImage}
                 className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-white/80 hover:bg-white p-2 rounded-full shadow-md transition"
               >
                 <FiChevronRight className="text-xl" />
               </button>
-              
+
               {/* Badges */}
               {artwork.discount && (
                 <div className="absolute top-4 left-4 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-medium">
@@ -374,17 +206,17 @@ export default function ArtworkDetailsPage() {
                 </div>
               )}
             </div>
-            
+
             {/* Thumbnail Images */}
             <div className="grid grid-cols-4 gap-2">
-              <div 
+              <div
                 className={`aspect-square bg-gray-200 rounded-md cursor-pointer border-2 ${selectedImage === 0 ? 'border-black' : 'border-transparent'}`}
                 onClick={() => setSelectedImage(0)}
               >
                 {/* Thumbnail 1 */}
               </div>
               {artwork.images?.map((_: any, index: number) => (
-                <div 
+                <div
                   key={index}
                   className={`aspect-square bg-gray-300 rounded-md cursor-pointer border-2 ${selectedImage === index + 1 ? 'border-black' : 'border-transparent'}`}
                   onClick={() => setSelectedImage(index + 1)}
@@ -393,7 +225,7 @@ export default function ArtworkDetailsPage() {
                 </div>
               ))}
             </div>
-            
+
             {/* 360° View & AR Preview */}
             <div className="mt-8 flex gap-4">
               <button className="flex-1 py-3 border border-gray-300 rounded-md hover:border-black transition text-sm font-medium">
@@ -404,7 +236,7 @@ export default function ArtworkDetailsPage() {
               </button>
             </div>
           </div>
-          
+
           {/* Right Column - Details */}
           <div>
             {/* Breadcrumb */}
@@ -413,7 +245,7 @@ export default function ArtworkDetailsPage() {
               <span>{artwork.category} / </span>
               <span className="text-black">{artwork.title}</span>
             </div>
-            
+
             {/* Title and Artist */}
             <h1 className="text-3xl md:text-4xl font-bold mb-2">{artwork.title}</h1>
             <div className="flex items-center justify-between mb-6">
@@ -429,10 +261,10 @@ export default function ArtworkDetailsPage() {
                   </span>
                 </div>
               </div>
-              
+
               {/* Like and Share */}
               <div className="flex gap-2">
-                <button 
+                <button
                   onClick={() => setIsLiked(!isLiked)}
                   className="p-2 hover:bg-gray-100 rounded-full transition"
                 >
@@ -442,7 +274,7 @@ export default function ArtworkDetailsPage() {
                     <FaRegHeart className="text-xl text-gray-600" />
                   )}
                 </button>
-                <button 
+                <button
                   onClick={handleShare}
                   className="p-2 hover:bg-gray-100 rounded-full transition"
                 >
@@ -450,7 +282,7 @@ export default function ArtworkDetailsPage() {
                 </button>
               </div>
             </div>
-            
+
             {/* Price */}
             <div className="mb-6">
               <div className="flex items-center gap-4">
@@ -463,14 +295,14 @@ export default function ArtworkDetailsPage() {
                 {artwork.inStock ? `In Stock (${artwork.stockCount} available)` : 'Out of Stock'}
               </p>
             </div>
-            
+
             {/* Description */}
             <div className="mb-8">
               <h3 className="text-lg font-semibold mb-2">Description</h3>
               <p className="text-gray-600 mb-4">{artwork.description}</p>
               <p className="text-gray-600 text-sm">{artwork.details}</p>
             </div>
-            
+
             {/* Dimensions */}
             <div className="mb-8">
               <h3 className="text-lg font-semibold mb-3">Select Size</h3>
@@ -487,7 +319,7 @@ export default function ArtworkDetailsPage() {
                 ))}
               </div>
             </div>
-            
+
             {/* Frame Options */}
             <div className="mb-8">
               <h3 className="text-lg font-semibold mb-3">Frame Options</h3>
@@ -504,13 +336,13 @@ export default function ArtworkDetailsPage() {
                 ))}
               </div>
             </div>
-            
+
             {/* Quantity and Add to Cart */}
             <div className="mb-8">
               <h3 className="text-lg font-semibold mb-3">Quantity</h3>
               <div className="flex items-center gap-6">
                 <div className="flex items-center border border-gray-300 rounded-md">
-                  <button 
+                  <button
                     onClick={handleDecrementQuantity}
                     className="px-4 py-3 hover:bg-gray-100 transition"
                     disabled={quantity <= 1}
@@ -518,14 +350,14 @@ export default function ArtworkDetailsPage() {
                     -
                   </button>
                   <span className="px-6 py-3 border-x border-gray-300">{quantity}</span>
-                  <button 
+                  <button
                     onClick={handleIncrementQuantity}
                     className="px-4 py-3 hover:bg-gray-100 transition"
                   >
                     +
                   </button>
                 </div>
-                
+
                 <div className="flex gap-3 flex-1">
                   <button
                     onClick={handleAddToCart}
@@ -534,17 +366,17 @@ export default function ArtworkDetailsPage() {
                     <FiShoppingCart />
                     Add to Cart
                   </button>
-                 
+
                 </div>
               </div>
             </div>
-            
+
             {/* Tags */}
             <div className="mb-8">
               <h3 className="text-lg font-semibold mb-3">Tags</h3>
               <div className="flex flex-wrap gap-2">
                 {artwork.tags.map((tag: string, index: number) => (
-                  <span 
+                  <span
                     key={index}
                     className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm hover:bg-gray-200 transition cursor-pointer"
                   >
@@ -553,7 +385,7 @@ export default function ArtworkDetailsPage() {
                 ))}
               </div>
             </div>
-            
+
             {/* Additional Info */}
             <div className="border-t border-gray-200 pt-8">
               <div className="grid grid-cols-2 gap-4 text-sm">
@@ -578,14 +410,14 @@ export default function ArtworkDetailsPage() {
           </div>
         </div>
       </div>
-      
+
       {/* Related Artworks */}
       <section className="py-12 bg-gray-50">
         <div className="container mx-auto px-4">
           <h2 className="text-2xl font-bold mb-8">You May Also Like</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             {RELATED_ARTWORKS.map((related) => (
-              <div 
+              <div
                 key={related.id}
                 className="group cursor-pointer"
                 onClick={() => router.push(`/artwork/${related.id}`)}
@@ -605,7 +437,7 @@ export default function ArtworkDetailsPage() {
           </div>
         </div>
       </section>
-      
+
       {/* Reviews Section */}
       <section className="py-12 bg-white">
         <div className="container mx-auto px-4">
@@ -621,7 +453,7 @@ export default function ArtworkDetailsPage() {
                 <p className="text-gray-600">{artwork.reviews} reviews</p>
               </div>
             </div>
-            
+
             {/* Sample Reviews */}
             <div className="space-y-6">
               <div className="border-b border-gray-200 pb-6">
@@ -633,11 +465,11 @@ export default function ArtworkDetailsPage() {
                   ★★★★★
                 </div>
                 <p className="text-gray-600">
-                  "Absolutely stunning! The colors are vibrant and the print quality is exceptional. 
+                  "Absolutely stunning! The colors are vibrant and the print quality is exceptional.
                   It looks even better in person than on the website."
                 </p>
               </div>
-              
+
               <div className="border-b border-gray-200 pb-6">
                 <div className="flex justify-between mb-2">
                   <span className="font-medium">Michael T.</span>
@@ -647,19 +479,19 @@ export default function ArtworkDetailsPage() {
                   ★★★★☆
                 </div>
                 <p className="text-gray-600">
-                  "Beautiful artwork, excellent framing. Delivery was fast and packaging was secure. 
+                  "Beautiful artwork, excellent framing. Delivery was fast and packaging was secure.
                   Would recommend to any art lover!"
                 </p>
               </div>
             </div>
-            
+
             <button className="mt-8 text-black border-b-2 border-black pb-1 font-medium hover:opacity-80 transition">
               View All Reviews →
             </button>
           </div>
         </div>
       </section>
-      
+
     </div>
   );
 }

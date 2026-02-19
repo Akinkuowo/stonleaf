@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import BecomeMarketerModal from '@/components/BecomeMarketerModal';
+import { useCart } from '@/context/CartContext';
 
 type MenuId = 'shop' | 'partners' | 'sellers' | 'about' | null;
 type AuthMode = 'signin' | 'signup' | null;
@@ -34,6 +35,7 @@ interface AuthResponse {
 
 export default function Header() {
   const router = useRouter();
+  const { itemCount } = useCart();
   const [activeMenu, setActiveMenu] = useState<MenuId>('shop');
   const [hoveredMenu, setHoveredMenu] = useState<MenuId>(null);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
@@ -384,9 +386,14 @@ export default function Header() {
               </button>
 
               {/* Cart Icon */}
-              <Link href="/cart">
+              <Link href="/cart" className="relative">
                 <button className="cursor-pointer text-gray-900 hover:text-gray-600">
                   <img src='/images/Icons/icon (1).png' className='w-7 h-7' alt="Cart" />
+                  {itemCount > 0 && (
+                    <span className="absolute -top-2 -right-2 bg-black text-white text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full">
+                      {itemCount}
+                    </span>
+                  )}
                 </button>
               </Link>
             </div>
