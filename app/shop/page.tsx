@@ -1,34 +1,55 @@
+'use client'
 
+import { useState, useEffect } from 'react'
 import Header from "@/components/header";
 import Footer from "@/components/footer";
 import ShopPage from "../components/shop";
 
-export default async function Shop() {
-    const apiUrl = `${process.env.NEXTAUTH_URL || 'http://localhost:3000'} /api/artworks ? limit = 50`;
-    let products = [];
+export default function Shop() {
+    const [products, setProducts] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
-    try {
-        const res = await fetch(apiUrl, {
-            cache: 'no-store'
-        });
+    useEffect(() => {
+        const fetchProducts = async () => {
+            try {
+                const res = await fetch('/api/artworks?limit=50', {
+                    cache: 'no-store'
+                });
 
-        if (!res.ok) {
-            const errorText = await res.text();
-            console.error(`Fetch failed with status ${res.status}: ${errorText.substring(0, 200)} `);
-            throw new Error(`API returned ${res.status} `);
-        }
+                if (!res.ok) {
+                    const errorText = await res.text();
+                    console.error(`Fetch failed with status ${res.status}: ${errorText.substring(0, 200)}`);
+                    throw new Error(`API returned ${res.status}`);
+                }
 
-        const data = await res.json();
-        products = data.artworks || [];
-    } catch (error) {
-        console.error('Error fetching artworks in Shop page:', error);
-        // Fallback to empty array or show error message
-    }
+                const data = await res.json();
+                setProducts(data.artworks || []);
+            } catch (err) {
+                console.error('Error fetching artworks in Shop page:', err);
+                setError('Failed to load products. Please try again.');
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchProducts();
+    }, []);
 
     return (
         <>
             <Header />
-            <ShopPage initialProducts={products} />
+            {loading ? (
+                <div className="flex justify-center items-center min-h-[50vh]">
+                    <p className="text-gray-500">Loading products...</p>
+                </div>
+            ) : error ? (
+                <div className="flex justify-center items-center min-h-[50vh]">
+                    <p className="text-red-500">{error}</p>
+                </div>
+            ) : (
+                <ShopPage initialProducts={products} />
+            )}
             <Footer />
         </>
     )

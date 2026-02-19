@@ -5,7 +5,6 @@ import { Search, X, Mail, Lock, Eye, EyeOff } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import BecomeArtistModal from '@/components/BecomeArtistModal';
 import BecomeMarketerModal from '@/components/BecomeMarketerModal';
 
 type MenuId = 'shop' | 'partners' | 'sellers' | 'about' | null;
@@ -40,7 +39,6 @@ export default function Header() {
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
   const [showAuthPopup, setShowAuthPopup] = useState<AuthMode>(null);
-  const [isArtistModalOpen, setIsArtistModalOpen] = useState(false);
   const [isMarketerModalOpen, setIsMarketerModalOpen] = useState(false);
   const [showAboutPopup, setShowAboutPopup] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -77,7 +75,6 @@ export default function Header() {
       id: 'partners' as const,
       label: 'OUR PARTNERS',
       items: [
-        { label: 'Artists', category: null, href: '/artist' },
         { label: 'Collaborators', category: null, href: '/collaborators' }
       ]
     },
@@ -85,14 +82,6 @@ export default function Header() {
       id: 'sellers' as const,
       label: 'JOIN OUR SELLERS',
       items: [
-        {
-          label: 'I am an Artist',
-          category: null,
-          onClick: () => {
-            setIsArtistModalOpen(true);
-            setHoveredMenu(null);
-          }
-        },
         {
           label: 'I am a Marketer',
           category: null,
@@ -807,7 +796,6 @@ export default function Header() {
           </div>
         </div>
       )}
-      <BecomeArtistModal isOpen={isArtistModalOpen} onClose={() => setIsArtistModalOpen(false)} />
       <BecomeMarketerModal isOpen={isMarketerModalOpen} onClose={() => setIsMarketerModalOpen(false)} />
     </div>
   );
