@@ -1,9 +1,9 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, Suspense } from 'react';
 import { Search, X, Mail, Lock, Eye, EyeOff } from 'lucide-react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import BecomeMarketerModal from '@/components/BecomeMarketerModal';
 import { useCart } from '@/context/CartContext';
@@ -34,7 +34,16 @@ interface AuthResponse {
 }
 
 export default function Header() {
+  return (
+    <Suspense fallback={<div className="h-20 bg-white" />}>
+      <HeaderContent />
+    </Suspense>
+  )
+}
+
+function HeaderContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { itemCount } = useCart();
   const [activeMenu, setActiveMenu] = useState<MenuId>('shop');
   const [hoveredMenu, setHoveredMenu] = useState<MenuId>(null);
@@ -193,6 +202,16 @@ export default function Header() {
       searchInputRef.current.focus();
     }
   }, [showSearch]);
+
+  // Handle auth popup based on search params
+  useEffect(() => {
+    const authAction = searchParams.get('auth');
+    if (authAction === 'signin') {
+      setShowAuthPopup('signin');
+    } else if (authAction === 'signup') {
+      setShowAuthPopup('signup');
+    }
+  }, [searchParams]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;

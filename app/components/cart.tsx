@@ -114,9 +114,12 @@ export default function CartComponent() {
                                 </div>
                             </div>
 
-                            <button className="w-full bg-black text-white py-4 rounded-md font-bold hover:bg-gray-800 transition mb-4">
+                            <Link
+                                href="/checkout"
+                                className="w-full bg-black text-white py-4 rounded-md font-bold hover:bg-gray-800 transition mb-4 flex items-center justify-center"
+                            >
                                 PROCEED TO CHECKOUT
-                            </button>
+                            </Link>
 
                             <div className="flex flex-wrap items-center justify-center gap-4 py-4 grayscale opacity-60">
                                 {/* Simple payment icons placeholders */}
