@@ -31,6 +31,7 @@ export async function GET(request: NextRequest) {
         email: true,
         name: true,
         country: true,
+        role: true,
         createdAt: true,
         updatedAt: true
       }

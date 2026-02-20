@@ -120,11 +120,13 @@ model Marketer {
   affiliateCode  String   @unique
   commissionRate Float    @default(0.10)
   totalEarnings  Float    @default(0)
+  clickCount     Int      @default(0)
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
   
-  user         User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  transactions AffiliateTransaction[]
+  user           User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions   AffiliateTransaction[]
+  payoutRequests PayoutRequest[]
 }
 
 model AffiliateTransaction {
@@ -133,8 +135,20 @@ model AffiliateTransaction {
   orderId      String
   commission   Float
   orderAmount  Float
+  status       String   @default("completed")
   createdAt    DateTime @default(now())
   
   marketer Marketer @relation(fields: [marketerId], references: [id], onDelete: Cascade)
   order    Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+}
+
+model PayoutRequest {
+  id         String   @id @default(cuid())
+  marketerId String
+  amount     Float
+  status     String   @default("pending")
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  
+  marketer Marketer @relation(fields: [marketerId], references: [id], onDelete: Cascade)
 }

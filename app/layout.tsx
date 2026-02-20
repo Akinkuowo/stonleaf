@@ -1,15 +1,12 @@
 import type { Metadata } from "next";
 import "./globals.css";
-
-const inter = Inter({ subsets: ["latin"] });
+import { CartProvider } from "@/context/CartContext";
 
 export const metadata: Metadata = {
   title: 'STONLEAF | Curate Your Next Collection',
   description: 'Premium collection curation services',
   keywords: ['art', 'curated collection', 'curation services', 'premium collection'],
 };
-
-import { CartProvider } from "@/context/CartContext";
 
 export default function RootLayout({
   children,
@@ -18,9 +15,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className={`${inter.className} antialiased`}
-      >
+      <body className="antialiased">
         <CartProvider>
           {children}
         </CartProvider>

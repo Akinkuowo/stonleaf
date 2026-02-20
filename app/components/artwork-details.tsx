@@ -22,6 +22,7 @@ export default function ArtworkDetailsPage() {
   const [quantity, setQuantity] = useState(1);
   const [isLiked, setIsLiked] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [relatedArtworks, setRelatedArtworks] = useState<any[]>([]);
 
   useEffect(() => {
     const fetchArtwork = async () => {
@@ -66,6 +67,27 @@ export default function ArtworkDetailsPage() {
         };
 
         setArtwork(mappedArtwork);
+
+        // Fetch related artworks
+        try {
+          const relRes = await fetch('/api/artworks');
+          if (relRes.ok) {
+            const allArtworks = await relRes.json();
+            const related = allArtworks
+              .filter((a: any) => a.id !== artworkId)
+              .slice(0, 4)
+              .map((a: any) => ({
+                id: a.id,
+                title: a.name,
+                artist: a.artist || 'Unknown Artist',
+                price: a.price,
+                image: a.imageUrl || '/images/placeholder.jpg',
+              }));
+            setRelatedArtworks(related);
+          }
+        } catch (relErr) {
+          console.error('Error fetching related artworks:', relErr);
+        }
       } catch (err) {
         console.error('Error fetching artwork details:', err);
       } finally {
@@ -416,7 +438,7 @@ export default function ArtworkDetailsPage() {
         <div className="container mx-auto px-4">
           <h2 className="text-2xl font-bold mb-8">You May Also Like</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            {RELATED_ARTWORKS.map((related) => (
+            {relatedArtworks.map((related) => (
               <div
                 key={related.id}
                 className="group cursor-pointer"
