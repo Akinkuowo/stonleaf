@@ -13,7 +13,49 @@ export default function CheckoutSuccessPage() {
     const router = useRouter();
 
     useEffect(() => {
-        // Clear cart after successful payment
+        const triggerProdigiOrder = async () => {
+            const shippingData = localStorage.getItem('lastOrderShipping');
+            const itemsData = localStorage.getItem('lastOrderItems');
+            const token = localStorage.getItem('token');
+
+            if (shippingData && itemsData && token) {
+                try {
+                    const shipping = JSON.parse(shippingData);
+                    const items = JSON.parse(itemsData);
+
+                    const recipient = {
+                        name: shipping.name,
+                        address: {
+                            line1: shipping.line1,
+                            townOrCity: shipping.city,
+                            stateOrCounty: shipping.state,
+                            postalOrZipCode: shipping.postalCode,
+                            countryCode: shipping.country,
+                        }
+                    };
+
+                    await fetch('/api/prodigi/create-order', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            Authorization: `Bearer ${token}`,
+                        },
+                        body: JSON.stringify({
+                            recipient,
+                            items,
+                        }),
+                    });
+
+                    // Clear after successful trigger
+                    localStorage.removeItem('lastOrderShipping');
+                    localStorage.removeItem('lastOrderItems');
+                } catch (err) {
+                    console.error('Failed to trigger Prodigi order:', err);
+                }
+            }
+        };
+
+        triggerProdigiOrder();
         clearCart();
     }, [clearCart]);
 

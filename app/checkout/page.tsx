@@ -17,24 +17,55 @@ import { AlertCircle, Lock, ShoppingBag, CreditCard } from 'lucide-react';
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
 
-function CheckoutForm({ clientSecret, amount }: { clientSecret: string; amount: number }) {
+function CheckoutForm({ clientSecret, amount, cart }: { clientSecret: string; amount: number; cart: any[] }) {
     const stripe = useStripe();
     const elements = useElements();
     const [error, setError] = useState<string | null>(null);
     const [processing, setProcessing] = useState(false);
+    const [shipping, setShipping] = useState({
+        name: '',
+        line1: '',
+        city: '',
+        state: '',
+        postalCode: '',
+        country: 'US',
+    });
     const router = useRouter();
+
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const { name, value } = e.target;
+        setShipping(prev => ({ ...prev, [name]: value }));
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
         if (!stripe || !elements) return;
+        if (!shipping.name || !shipping.line1 || !shipping.city || !shipping.postalCode) {
+            setError('Please fill in all required shipping fields.');
+            return;
+        }
 
         setProcessing(true);
+
+        // Store shipping and cart info for the success page to call Prodigi
+        localStorage.setItem('lastOrderShipping', JSON.stringify(shipping));
+        localStorage.setItem('lastOrderItems', JSON.stringify(cart));
 
         const { error: submitError } = await stripe.confirmPayment({
             elements,
             confirmParams: {
                 return_url: `${window.location.origin}/checkout/success`,
+                shipping: {
+                    name: shipping.name,
+                    address: {
+                        line1: shipping.line1,
+                        city: shipping.city,
+                        state: shipping.state,
+                        postal_code: shipping.postalCode,
+                        country: shipping.country,
+                    }
+                }
             },
         });
 
@@ -47,6 +78,70 @@ function CheckoutForm({ clientSecret, amount }: { clientSecret: string; amount: 
 
     return (
         <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="space-y-4 mb-8">
+                <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wider">Shipping Information</h3>
+                <input
+                    type="text"
+                    name="name"
+                    placeholder="Full Name"
+                    required
+                    className="w-full p-3 border border-gray-200 rounded-md focus:ring-2 focus:ring-black focus:outline-none"
+                    value={shipping.name}
+                    onChange={handleInputChange}
+                />
+                <input
+                    type="text"
+                    name="line1"
+                    placeholder="Address Line 1"
+                    required
+                    className="w-full p-3 border border-gray-200 rounded-md focus:ring-2 focus:ring-black focus:outline-none"
+                    value={shipping.line1}
+                    onChange={handleInputChange}
+                />
+                <div className="grid grid-cols-2 gap-4">
+                    <input
+                        type="text"
+                        name="city"
+                        placeholder="City"
+                        required
+                        className="w-full p-3 border border-gray-200 rounded-md focus:ring-2 focus:ring-black focus:outline-none"
+                        value={shipping.city}
+                        onChange={handleInputChange}
+                    />
+                    <input
+                        type="text"
+                        name="state"
+                        placeholder="State / Province"
+                        className="w-full p-3 border border-gray-200 rounded-md focus:ring-2 focus:ring-black focus:outline-none"
+                        value={shipping.state}
+                        onChange={handleInputChange}
+                    />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                    <input
+                        type="text"
+                        name="postalCode"
+                        placeholder="Postal / Zip Code"
+                        required
+                        className="w-full p-3 border border-gray-200 rounded-md focus:ring-2 focus:ring-black focus:outline-none"
+                        value={shipping.postalCode}
+                        onChange={handleInputChange}
+                    />
+                    <select
+                        name="country"
+                        className="w-full p-3 border border-gray-200 rounded-md focus:ring-2 focus:ring-black focus:outline-none bg-white"
+                        value={shipping.country}
+                        onChange={(e: any) => handleInputChange(e)}
+                    >
+                        <option value="US">United States</option>
+                        <option value="GB">United Kingdom</option>
+                        <option value="CA">Canada</option>
+                        <option value="AU">Australia</option>
+                    </select>
+                </div>
+            </div>
+
+            <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wider mb-4">Payment Information</h3>
             <PaymentElement />
             {error && (
                 <div className="p-4 bg-red-50 border border-red-200 rounded-md flex items-start gap-3">
@@ -203,7 +298,7 @@ export default function CheckoutPage() {
                                         },
                                     }}
                                 >
-                                    <CheckoutForm clientSecret={clientSecret} amount={amount} />
+                                    <CheckoutForm clientSecret={clientSecret} amount={amount} cart={cart} />
                                 </Elements>
                             ) : (
                                 <div className="flex flex-col items-center justify-center py-12 gap-3">
