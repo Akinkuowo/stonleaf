@@ -11,6 +11,7 @@ enum UserRole {
   CUSTOMER
   ARTIST
   MARKETER
+  ADMIN
 }
 
 model User {
@@ -22,6 +23,8 @@ model User {
   role         UserRole @default(CUSTOMER)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+  resetToken       String?   @unique
+  resetTokenExpiry DateTime?
   
   carts        Cart[]
   orders       Order[]

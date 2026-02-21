@@ -5,7 +5,7 @@ import jwt from 'jsonwebtoken'
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key'
 const SALT_ROUNDS = 10
 
-export type UserRole = 'CUSTOMER' | 'ARTIST' | 'MARKETER'
+export type UserRole = 'CUSTOMER' | 'ARTIST' | 'MARKETER' | 'ADMIN'
 
 export interface UserPayload {
   id: string
@@ -54,4 +54,8 @@ export function isArtist(user: UserPayload): boolean {
 
 export function isMarketer(user: UserPayload): boolean {
   return user.role === 'MARKETER'
+}
+
+export function isAdmin(user: UserPayload): boolean {
+  return user.role === 'ADMIN'
 }

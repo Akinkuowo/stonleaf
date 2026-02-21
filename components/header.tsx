@@ -9,7 +9,7 @@ import BecomeMarketerModal from '@/components/BecomeMarketerModal';
 import { useCart } from '@/context/CartContext';
 
 type MenuId = 'shop' | 'partners' | 'sellers' | 'about' | null;
-type AuthMode = 'signin' | 'signup' | null;
+type AuthMode = 'signin' | 'signup' | 'forgot-password' | null;
 type CategoryType = 'all' | 'canvas' | 'photo' | 'digital' | 'ar';
 
 interface MenuItem {
@@ -61,6 +61,7 @@ function HeaderContent() {
     country: ''
   });
   const [authError, setAuthError] = useState<string | null>(null);
+  const [authMessage, setAuthMessage] = useState<string | null>(null);
 
   const userDropdownRef = useRef<HTMLDivElement>(null);
   const authPopupRef = useRef<HTMLDivElement>(null);
@@ -121,7 +122,7 @@ function HeaderContent() {
     }
   ];
 
-  // Authentication functions (unchanged)
+  // Authentication functions
   const signIn = async (email: string, password: string): Promise<AuthResponse> => {
     try {
       const response = await fetch('/api/auth/signin', {
@@ -234,6 +235,8 @@ function HeaderContent() {
           window.location.href = '/dashboard/artist';
         } else if (result.user?.role === 'MARKETER') {
           window.location.href = '/dashboard/marketer';
+        } else if (result.user?.role === 'ADMIN') {
+          window.location.href = '/admin/dashboard';
         } else {
           window.location.href = '/dashboard/customer';
         }
@@ -260,6 +263,26 @@ function HeaderContent() {
       } else {
         setAuthError(result.error || 'Sign up failed');
       }
+    } else if (showAuthPopup === 'forgot-password') {
+      try {
+        const response = await fetch('/api/auth/forgot-password', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: formData.email })
+        });
+        const data = await response.json();
+        if (response.ok) {
+          setAuthMessage(data.message);
+          setFormData(prev => ({ ...prev, email: '' }));
+          if (data.debugResetUrl) {
+            console.log('DEBUG: Reset Link:', data.debugResetUrl);
+          }
+        } else {
+          setAuthError(data.error || 'Request failed');
+        }
+      } catch (error) {
+        setAuthError('Network error. Please try again.');
+      }
     }
   };
 
@@ -269,10 +292,11 @@ function HeaderContent() {
     setFormData(prev => ({ ...prev, password: '', confirmPassword: '' }));
   };
 
-  const openAuthPopup = (mode: 'signin' | 'signup') => {
+  const openAuthPopup = (mode: 'signin' | 'signup' | 'forgot-password') => {
     setShowAuthPopup(mode);
     setUserDropdownOpen(false);
     setAuthError(null);
+    setAuthMessage(null);
   };
 
   const handleMenuEnter = (menuId: MenuId) => {
@@ -332,7 +356,6 @@ function HeaderContent() {
   // Handle partners menu click
   const handlePartnersClick = () => {
     setActiveMenu('partners');
-    // Don't navigate on main button click, only on dropdown items
   };
 
   // Handle navigation to specific pages
@@ -449,50 +472,19 @@ function HeaderContent() {
               onMouseEnter={() => handleMenuEnter(menu.id)}
               onMouseLeave={handleMenuLeave}
             >
-              {/* For SHOP menu, use onClick to navigate */}
-              {menu.id === 'shop' ? (
-                <button
-                  onClick={handleShopClick}
-                  className={`
-                    cursor-pointer flex items-center space-x-1 text-sm tracking-wide transition-all duration-200
-                    ${activeMenu === menu.id
-                      ? 'font-bold text-gray-900'
-                      : 'font-normal text-gray-900 hover:text-gray-600'
-                    }
-                    ${hoveredMenu === menu.id ? 'border-b-2 border-gray-900' : ''}
-                  `}
-                >
-                  <span>{menu.label}</span>
-                </button>
-              ) : menu.id === 'partners' ? (
-                <button
-                  onClick={handlePartnersClick}
-                  className={`
-                    cursor-pointer flex items-center space-x-1 text-sm tracking-wide transition-all duration-200
-                    ${activeMenu === menu.id
-                      ? 'font-bold text-gray-900'
-                      : 'font-normal text-gray-900 hover:text-gray-600'
-                    }
-                    ${hoveredMenu === menu.id ? 'border-b-2 border-gray-900' : ''}
-                  `}
-                >
-                  <span>{menu.label}</span>
-                </button>
-              ) : (
-                <button
-                  onClick={() => setActiveMenu(menu.id)}
-                  className={`
-                    cursor-pointer flex items-center space-x-1 text-sm tracking-wide transition-all duration-200
-                    ${activeMenu === menu.id
-                      ? 'font-bold text-gray-900'
-                      : 'font-normal text-gray-900 hover:text-gray-600'
-                    }
-                    ${hoveredMenu === menu.id ? 'border-b-2 border-gray-900' : ''}
-                  `}
-                >
-                  <span>{menu.label}</span>
-                </button>
-              )}
+              <button
+                onClick={menu.id === 'shop' ? handleShopClick : menu.id === 'partners' ? handlePartnersClick : () => setActiveMenu(menu.id)}
+                className={`
+                  cursor-pointer flex items-center space-x-1 text-sm tracking-wide transition-all duration-200
+                  ${activeMenu === menu.id
+                    ? 'font-bold text-gray-900'
+                    : 'font-normal text-gray-900 hover:text-gray-600'
+                  }
+                  ${hoveredMenu === menu.id ? 'border-b-2 border-gray-900' : ''}
+                `}
+              >
+                <span>{menu.label}</span>
+              </button>
 
               {/* Dropdown Menu */}
               {hoveredMenu === menu.id && (
@@ -525,7 +517,7 @@ function HeaderContent() {
         </nav>
       </header>
 
-      {/* About Us Popup Modal - Updated Layout */}
+      {/* About Us Popup Modal */}
       {showAboutPopup && (
         <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
           <div
@@ -547,7 +539,6 @@ function HeaderContent() {
             <div className="flex-1 flex overflow-hidden">
               {/* Left Side - Image (60%) */}
               <div className="w-3/5 p-6 border-r border-gray-200 overflow-y-auto">
-                {/* Book Image */}
                 <Image
                   src="/images/artwork_4.jpg"
                   alt="About Us"
@@ -566,42 +557,13 @@ function HeaderContent() {
                       <p className="text-gray-700 leading-relaxed">
                         Your home is a reflection of who you are. The colors you choose, the furniture you love, and the art you hang on your walls—it all tells a story. At Stonleaf, we exist to help you tell yours.
                       </p>
-
                       <p className="text-gray-700 leading-relaxed">
                         We are a team of curators and creators based in the United States, passionate about the power of visual storytelling.
                         Every print that leaves our facility is inspected for color accuracy, sharpness, and durability.
-                        We use industry-leading paper and canvas stocks that ensure your art doesn't just look good today—it lasts a lifetime.
-                        We offer a diverse collection of prints designed to match every mood, season, and personality.
                       </p>
-
-                      <p className="text-gray-700 leading-relaxed"> Whether you are redecorating your first apartment, styling a modern office, or looking for that perfect gift, Stonleaf provides the inspiration you need to make any space truly your own.  </p>
+                      <p className="text-gray-700 leading-relaxed"> Whether you are redecorating your first apartment, styling a modern office, or looking for that perfect gift, Stonleaf provides the inspiration you need to make any space truly your own. </p>
                     </div>
                   </div>
-                  {/* 
-                  <div className="space-y-4">
-                    <h4 className="text-lg font-semibold text-gray-900">About this site:</h4>
-
-                    <div className="space-y-3">
-                      <div>
-                        <h5 className="font-medium text-gray-900 mb-1">About Us</h5>
-                        <p className="text-gray-700 text-sm">
-                          To share his vision with the world, Dafe Benson established Stoneleaf,
-                          a premier online destination for art collectors and enthusiasts.
-                        </p>
-                      </div>
-
-                      <div>
-                        <h5 className="font-medium text-gray-900 mb-1">Stoneleaf</h5>
-                        <p className="text-gray-700 text-sm">
-                          Stoneleaf removes geographical barriers, allowing art lovers to discover
-                          and purchase their favorite pieces from anywhere on the globe. Whether you
-                          are seeking Dafe's signature editorial prints or unique digital works,
-                          the platform ensures a seamless experience, delivering high-quality art
-                          directly to your doorstep.
-                        </p>
-                      </div>
-                    </div>
-                  </div> */}
 
                   {/* Key Features */}
                   <div className="pt-4 border-t border-gray-200">
@@ -614,10 +576,6 @@ function HeaderContent() {
                       <li className="flex items-start">
                         <span className="text-gray-900 mr-2">•</span>
                         <span className="text-gray-700 text-sm">Curated collection of exclusive artworks</span>
-                      </li>
-                      <li className="flex items-start">
-                        <span className="text-gray-900 mr-2">•</span>
-                        <span className="text-gray-700 text-sm">Digital and AR art experiences</span>
                       </li>
                       <li className="flex items-start">
                         <span className="text-gray-900 mr-2">•</span>
@@ -670,13 +628,24 @@ function HeaderContent() {
                 </button>
               </div>
               <div className="text-center mb-6">
-                <h2 className="text-2xl font-bold text-gray-900">
-                  {showAuthPopup === 'signin' ? 'SIGN IN' : 'SIGN UP'}
+                <h2 className="text-2xl font-bold text-gray-900 uppercase">
+                  {showAuthPopup === 'signin' ? 'SIGN IN' : showAuthPopup === 'forgot-password' ? 'FORGOT PASSWORD' : 'SIGN UP'}
                 </h2>
-                <p className="text-sm text-gray-600">{showAuthPopup === 'signin' ? 'Access your account' : 'Create a new account'}</p>
+                <p className="text-sm text-gray-600">
+                  {showAuthPopup === 'signin'
+                    ? 'Access your account'
+                    : showAuthPopup === 'forgot-password'
+                      ? 'Enter your email to reset password'
+                      : 'Create a new account'}
+                </p>
               </div>
 
-              {/* Error Message */}
+              {/* Messages */}
+              {authMessage && (
+                <div className="mb-4 p-3 bg-green-50 border border-green-200 text-green-700 rounded-md text-sm">
+                  {authMessage}
+                </div>
+              )}
               {authError && (
                 <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-md text-sm">
                   {authError}
@@ -687,9 +656,7 @@ function HeaderContent() {
               <form onSubmit={handleAuthSubmit}>
                 {showAuthPopup === 'signup' && (
                   <div className="mb-4">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Your Name
-                    </label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Your Name</label>
                     <input
                       type="text"
                       name="name"
@@ -703,9 +670,7 @@ function HeaderContent() {
                 )}
 
                 <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Your email
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Your email</label>
                   <div className="relative">
                     <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
                     <input
@@ -722,65 +687,56 @@ function HeaderContent() {
 
                 {showAuthPopup === 'signup' && (
                   <div className="mb-4">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Enter Your Country
-                    </label>
-                    <div className="relative">
-                      <input
-                        type="text"
-                        name="country"
-                        value={formData.country}
-                        onChange={handleInputChange}
-                        placeholder="Enter your country"
-                        className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent"
-                        required
-                      />
-                    </div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Enter Your Country</label>
+                    <input
+                      type="text"
+                      name="country"
+                      value={formData.country}
+                      onChange={handleInputChange}
+                      placeholder="Enter your country"
+                      className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent"
+                      required
+                    />
                   </div>
                 )}
 
-                <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Password
-                  </label>
-                  <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-                    <input
-                      type={showPassword ? "text" : "password"}
-                      name="password"
-                      value={formData.password}
-                      onChange={handleInputChange}
-                      placeholder="Enter your password"
-                      className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent"
-                      required
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                    >
-                      {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                    </button>
-                  </div>
-                </div>
-
-                {showAuthPopup === 'signup' && (
-                  <div className="mb-6">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Confirm Password
-                    </label>
+                {showAuthPopup !== 'forgot-password' && (
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
                     <div className="relative">
                       <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
                       <input
                         type={showPassword ? "text" : "password"}
-                        name="confirmPassword"
-                        value={formData.confirmPassword}
+                        name="password"
+                        value={formData.password}
                         onChange={handleInputChange}
-                        placeholder="Confirm your password"
-                        className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent"
+                        placeholder="Enter your password"
+                        className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent"
                         required
                       />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                      >
+                        {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                      </button>
                     </div>
+                  </div>
+                )}
+
+                {showAuthPopup === 'signup' && (
+                  <div className="mb-6">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Confirm Password</label>
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      name="confirmPassword"
+                      value={formData.confirmPassword}
+                      onChange={handleInputChange}
+                      placeholder="Confirm your password"
+                      className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent"
+                      required
+                    />
                   </div>
                 )}
 
@@ -788,16 +744,12 @@ function HeaderContent() {
                   type="submit"
                   className="cursor-pointer w-full bg-gray-900 text-white py-3 px-4 rounded-md hover:bg-gray-800 transition-colors duration-200 font-medium"
                 >
-                  {showAuthPopup === 'signin' ? 'Sign In' : 'Create Account'}
+                  {showAuthPopup === 'signin' ? 'Sign In' : showAuthPopup === 'forgot-password' ? 'Send Reset Link' : 'Create Account'}
                 </button>
 
-                {/* Switch between sign in/sign up */}
                 <div className="mt-4 text-center">
                   <p className="text-sm text-gray-600">
-                    {showAuthPopup === 'signin'
-                      ? "Don't have an account? "
-                      : "Already have an account? "
-                    }
+                    {showAuthPopup === 'signin' ? "Don't have an account? " : "Already have an account? "}
                     <button
                       type="button"
                       onClick={switchAuthMode}
@@ -807,16 +759,6 @@ function HeaderContent() {
                     </button>
                   </p>
                 </div>
-
-                {/* Terms and Policy */}
-                {showAuthPopup === 'signup' && (
-                  <div className="mt-4 text-center">
-                    <p className="text-xs text-gray-500">
-                      By clicking "Create Account", you accept Stoneleaf's Terms of Service and Privacy Policy.
-                      This site uses encryption and the Google Privacy Policy on Forms of Service apply.
-                    </p>
-                  </div>
-                )}
               </form>
             </div>
           </div>
