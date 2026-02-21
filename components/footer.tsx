@@ -36,7 +36,7 @@ export default function Footer() {
             </div>
             <div className='flex justify-between'>
               <p className="text-sm font-light text-white">
-                Sign up for our newsletter 
+                Sign up for our newsletter
               </p>
 
               <button className=" text-white">
@@ -59,7 +59,7 @@ export default function Footer() {
             {/* Column 2 */}
             <div className="flex flex-col space-y-2">
               <h3 className="font-bold mb-2">FAQ</h3>
-              <a href="#" className="text-gray-300 hover:text-white transition-colors">Sizing & Framing</a>
+              <a href="/faq" className="text-gray-300 hover:text-white transition-colors">General FAQ</a>
               <a href="#" className="text-gray-300 hover:text-white transition-colors">Contact Us</a>
             </div>
 

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect, Suspense } from 'react';
-import { Search, X, Mail, Lock, Eye, EyeOff } from 'lucide-react';
+import { Search, X, Mail, Lock, Eye, EyeOff, Loader2, User, LogOut, Heart } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
@@ -44,7 +44,7 @@ export default function Header() {
 function HeaderContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { itemCount } = useCart();
+  const { itemCount, syncCart } = useCart();
   const [activeMenu, setActiveMenu] = useState<MenuId>('shop');
   const [hoveredMenu, setHoveredMenu] = useState<MenuId>(null);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
@@ -62,6 +62,8 @@ function HeaderContent() {
   });
   const [authError, setAuthError] = useState<string | null>(null);
   const [authMessage, setAuthMessage] = useState<string | null>(null);
+  const [isAuthLoading, setIsAuthLoading] = useState(false);
+  const [user, setUser] = useState<any>(null);
 
   const userDropdownRef = useRef<HTMLDivElement>(null);
   const authPopupRef = useRef<HTMLDivElement>(null);
@@ -136,6 +138,8 @@ function HeaderContent() {
       if (response.ok) {
         localStorage.setItem('token', data.token);
         console.log('User signed in:', data.user);
+        loadUser();
+        await syncCart();
         return { success: true, user: data.user, token: data.token };
       } else {
         return { success: false, error: data.error || 'Sign in failed' };
@@ -164,6 +168,8 @@ function HeaderContent() {
       if (response.ok) {
         localStorage.setItem('token', data.token);
         console.log('User signed up:', data.user);
+        loadUser();
+        await syncCart();
         return { success: true, user: data.user, token: data.token };
       } else {
         return { success: false, error: data.error || 'Sign up failed' };
@@ -172,6 +178,33 @@ function HeaderContent() {
       console.error('Sign up error:', error);
       return { success: false, error: 'Network error. Please try again.' };
     }
+  };
+
+  // Load user from token
+  const loadUser = () => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        setUser(payload);
+      } catch (e) {
+        console.error('Failed to decode token', e);
+        localStorage.removeItem('token');
+      }
+    } else {
+      setUser(null);
+    }
+  };
+
+  useEffect(() => {
+    loadUser();
+  }, [showAuthPopup]); // Reload when auth popup closes (potentially after login)
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    setUser(null);
+    setUserDropdownOpen(false);
+    window.location.href = '/';
   };
 
   // Close dropdowns when clicking outside
@@ -223,66 +256,73 @@ function HeaderContent() {
   const handleAuthSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setAuthError(null);
+    setIsAuthLoading(true);
 
-    if (showAuthPopup === 'signin') {
-      const result = await signIn(formData.email, formData.password);
-      if (result.success) {
-        setShowAuthPopup(null);
-        setFormData({ email: '', password: '', confirmPassword: '', name: '', country: '' });
+    try {
+      if (showAuthPopup === 'signin') {
+        const result = await signIn(formData.email, formData.password);
+        if (result.success) {
+          setShowAuthPopup(null);
+          setFormData({ email: '', password: '', confirmPassword: '', name: '', country: '' });
 
-        // Redirect based on role
-        if (result.user?.role === 'ARTIST') {
-          window.location.href = '/dashboard/artist';
-        } else if (result.user?.role === 'MARKETER') {
-          window.location.href = '/dashboard/marketer';
-        } else if (result.user?.role === 'ADMIN') {
-          window.location.href = '/admin/dashboard';
-        } else {
-          window.location.href = '/dashboard/customer';
-        }
-      } else {
-        setAuthError(result.error || 'Sign in failed');
-      }
-    } else if (showAuthPopup === 'signup') {
-      if (formData.password !== formData.confirmPassword) {
-        setAuthError('Passwords do not match');
-        return;
-      }
-
-      const result = await signUp({
-        email: formData.email,
-        password: formData.password,
-        name: formData.name,
-        country: formData.country
-      });
-
-      if (result.success) {
-        setShowAuthPopup(null);
-        setFormData({ email: '', password: '', confirmPassword: '', name: '', country: '' });
-        window.location.href = '/dashboard/customer';
-      } else {
-        setAuthError(result.error || 'Sign up failed');
-      }
-    } else if (showAuthPopup === 'forgot-password') {
-      try {
-        const response = await fetch('/api/auth/forgot-password', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email: formData.email })
-        });
-        const data = await response.json();
-        if (response.ok) {
-          setAuthMessage(data.message);
-          setFormData(prev => ({ ...prev, email: '' }));
-          if (data.debugResetUrl) {
-            console.log('DEBUG: Reset Link:', data.debugResetUrl);
+          // Redirect based on role
+          if (result.user?.role === 'ARTIST') {
+            window.location.href = '/dashboard/artist';
+          } else if (result.user?.role === 'MARKETER') {
+            window.location.href = '/dashboard/marketer';
+          } else if (result.user?.role === 'ADMIN') {
+            window.location.href = '/admin/dashboard';
+          } else {
+            window.location.href = '/dashboard/customer';
           }
         } else {
-          setAuthError(data.error || 'Request failed');
+          setAuthError(result.error || 'Sign in failed');
         }
-      } catch (error) {
-        setAuthError('Network error. Please try again.');
+      } else if (showAuthPopup === 'signup') {
+        if (formData.password !== formData.confirmPassword) {
+          setAuthError('Passwords do not match');
+          return;
+        }
+
+        const result = await signUp({
+          email: formData.email,
+          password: formData.password,
+          name: formData.name,
+          country: formData.country
+        });
+
+        if (result.success) {
+          setShowAuthPopup(null);
+          setFormData({ email: '', password: '', confirmPassword: '', name: '', country: '' });
+          loadUser();
+          await syncCart();
+          window.location.href = '/dashboard/customer';
+        } else {
+          setAuthError(result.error || 'Sign up failed');
+        }
+      } else if (showAuthPopup === 'forgot-password') {
+        try {
+          const response = await fetch('/api/auth/forgot-password', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: formData.email })
+          });
+          const data = await response.json();
+          if (response.ok) {
+            setAuthMessage(data.message);
+            setFormData(prev => ({ ...prev, email: '' }));
+            if (data.debugResetUrl) {
+              console.log('DEBUG: Reset Link:', data.debugResetUrl);
+            }
+          } else {
+            setAuthError(data.error || 'Request failed');
+          }
+        } catch (error) {
+          setAuthError('Network error. Please try again.');
+        }
       }
+    } finally {
+      setIsAuthLoading(false);
     }
   };
 
@@ -399,22 +439,70 @@ function HeaderContent() {
                 {/* User Dropdown */}
                 {userDropdownOpen && (
                   <div
-                    className="absolute top-full right-[-10] mt-2 w-48 bg-white shadow-lg rounded-md py-2 z-50 border border-gray-100"
+                    className="absolute top-full right-[-10px] mt-2 w-72 bg-white shadow-2xl rounded-2xl p-6 z-50 border border-gray-100 flex flex-col gap-6"
                     onMouseEnter={cancelLeaveTimeout}
                     onMouseLeave={handleUserDropdownLeave}
                   >
-                    <button
-                      onClick={() => openAuthPopup('signin')}
-                      className="cursor-pointer block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-colors duration-150"
-                    >
-                      Sign In
-                    </button>
-                    <button
-                      onClick={() => openAuthPopup('signup')}
-                      className="cursor-pointer block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-colors duration-150"
-                    >
-                      Sign Up
-                    </button>
+                    {!user ? (
+                      <div className="flex flex-col gap-2">
+                        <button
+                          onClick={() => openAuthPopup('signin')}
+                          className="cursor-pointer block w-full text-center py-3 text-sm font-semibold text-white bg-black rounded-lg hover:bg-gray-800 transition-all duration-200"
+                        >
+                          Sign In
+                        </button>
+                        <button
+                          onClick={() => openAuthPopup('signup')}
+                          className="cursor-pointer block w-full text-center py-3 text-sm font-semibold text-gray-700 bg-gray-50 rounded-lg hover:bg-gray-100 transition-all duration-200"
+                        >
+                          Sign Up
+                        </button>
+                      </div>
+                    ) : (
+                      <>
+                        <div className="flex items-center gap-4">
+                          <div className="w-14 h-14 bg-gray-100 rounded-full flex items-center justify-center overflow-hidden border border-gray-100">
+                            {/* Fallback avatar if no image */}
+                            <div className="w-full h-full bg-stone-200 flex items-center justify-center text-stone-500 font-bold text-xl uppercase">
+                              {user.name?.charAt(0) || user.email.charAt(0)}
+                            </div>
+                          </div>
+                          <div className="flex flex-col">
+                            <span className="text-sm font-bold text-gray-900 uppercase tracking-wider">{user.name || 'User'}</span>
+                            <span className="text-xs text-gray-500">{user.country || 'Location not set'}</span>
+                          </div>
+                        </div>
+
+                        <div className="flex flex-col gap-1">
+                          <Link
+                            href="/favorites"
+                            className="flex items-center gap-3 px-2 py-2 text-sm text-gray-600 hover:text-black hover:bg-gray-50 rounded-lg transition-all duration-200"
+                          >
+                            <Heart className="w-4 h-4" />
+                            <span>View and share Favorite</span>
+                          </Link>
+                          {user.role === 'ADMIN' && (
+                            <Link
+                              href="/admin/dashboard"
+                              className="flex items-center gap-3 px-2 py-2 text-sm text-gray-600 hover:text-black hover:bg-gray-50 rounded-lg transition-all duration-200"
+                            >
+                              <Lock className="w-4 h-4" />
+                              <span>Admin Dashboard</span>
+                            </Link>
+                          )}
+                        </div>
+
+                        <div className="pt-4 border-t border-gray-100">
+                          <button
+                            onClick={handleLogout}
+                            className="flex items-center gap-3 px-2 py-2 w-full text-left text-sm text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200 font-medium"
+                          >
+                            <LogOut className="w-4 h-4" />
+                            <span>Log Out</span>
+                          </button>
+                        </div>
+                      </>
+                    )}
                   </div>
                 )}
               </div>
@@ -742,9 +830,14 @@ function HeaderContent() {
 
                 <button
                   type="submit"
-                  className="cursor-pointer w-full bg-gray-900 text-white py-3 px-4 rounded-md hover:bg-gray-800 transition-colors duration-200 font-medium"
+                  disabled={isAuthLoading}
+                  className="cursor-pointer w-full bg-gray-900 text-white py-3 px-4 rounded-md hover:bg-gray-800 transition-colors duration-200 font-medium flex items-center justify-center gap-2"
                 >
-                  {showAuthPopup === 'signin' ? 'Sign In' : showAuthPopup === 'forgot-password' ? 'Send Reset Link' : 'Create Account'}
+                  {isAuthLoading ? (
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                  ) : (
+                    showAuthPopup === 'signin' ? 'Sign In' : showAuthPopup === 'forgot-password' ? 'Send Reset Link' : 'Create Account'
+                  )}
                 </button>
 
                 <div className="mt-4 text-center">

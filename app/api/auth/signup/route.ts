@@ -31,31 +31,42 @@ export async function POST(request: NextRequest) {
     const passwordHash = await hashPassword(password)
 
     // Create user
-    const user = await prisma.user.create({
-      data: {
-        email,
-        name,
-        country,
-        passwordHash
+    try {
+      const user = await prisma.user.create({
+        data: {
+          email,
+          name,
+          country,
+          passwordHash,
+          role: 'CUSTOMER'
+        }
+      })
+
+      // Generate token
+      const token = generateToken({
+        id: user.id,
+        email: user.email,
+        name: user.name || undefined,
+        country: user.country || undefined,
+        role: user.role
+      })
+
+      // Remove password hash from response
+      const { passwordHash: _, ...userWithoutPassword } = user
+
+      return NextResponse.json({
+        user: userWithoutPassword,
+        token
+      }, { status: 201 })
+    } catch (error: any) {
+      if (error.code === 'P2002') {
+        return NextResponse.json(
+          { error: 'User already exists' },
+          { status: 409 }
+        )
       }
-    })
-
-    // Generate token
-    const token = generateToken({
-      id: user.id,
-      email: user.email,
-      name: user.name || undefined,
-      country: user.country || undefined,
-      role: user.role
-    })
-
-    // Remove password hash from response
-    const { passwordHash: _, ...userWithoutPassword } = user
-
-    return NextResponse.json({
-      user: userWithoutPassword,
-      token
-    }, { status: 201 })
+      throw error
+    }
 
   } catch (error) {
     console.error('Signup error:', error)

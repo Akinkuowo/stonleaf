@@ -170,7 +170,7 @@ export default function CheckoutPage() {
     const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
     const [clientSecret, setClientSecret] = useState<string | null>(null);
     const [amount, setAmount] = useState<number>(0);
-    const { cart } = useCart();
+    const { cart, syncCart } = useCart();
     const router = useRouter();
 
     useEffect(() => {
@@ -184,6 +184,8 @@ export default function CheckoutPage() {
 
         const createIntent = async () => {
             try {
+                // Sync cart to DB before creating intent to avoid 400 error
+                await syncCart();
                 const res = await fetch('/api/checkout/create-intent', {
                     method: 'POST',
                     headers: {
