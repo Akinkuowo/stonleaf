@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import {
     ChevronLeft,
@@ -8,32 +8,116 @@ import {
     Package,
     Image as ImageIcon,
     Loader2,
-    CheckCircle2
+    CheckCircle2,
+    Plus,
+    X,
+    Upload,
+    Palette,
+    DollarSign
 } from 'lucide-react';
 import Link from 'next/link';
 
 export default function NewProductPage() {
     const router = useRouter();
     const [loading, setLoading] = useState(false);
+    const [uploading, setUploading] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState(false);
 
     const [formData, setFormData] = useState({
         name: '',
         description: '',
-        price: '',
+        basePrice: '0',
+        gainFee: '0',
+        price: '0',
         category: 'canvas',
         imageUrl: '',
+        gallery: [] as string[],
+        colors: [] as string[],
         artist: '',
         stock: '0',
         isActive: true
     });
+
+    const [newColor, setNewColor] = useState('');
+
+    // Auto-calculate total price
+    useEffect(() => {
+        const base = parseFloat(formData.basePrice) || 0;
+        const gain = parseFloat(formData.gainFee) || 0;
+        const total = base + gain;
+        setFormData(prev => ({ ...prev, price: total.toString() }));
+    }, [formData.basePrice, formData.gainFee]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { name, value, type } = e.target as any;
         setFormData(prev => ({
             ...prev,
             [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value
+        }));
+    };
+
+    const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, target: 'main' | 'gallery') => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        setUploading(target === 'main' ? 'main' : 'gallery');
+
+        // Convert to base64 for our simple upload API
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = async () => {
+            try {
+                const base64Image = reader.result as string;
+                const token = localStorage.getItem('token');
+                const response = await fetch('/api/upload', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ image: base64Image })
+                });
+
+                const data = await response.json();
+                if (response.ok) {
+                    if (target === 'main') {
+                        setFormData(prev => ({ ...prev, imageUrl: data.url }));
+                    } else {
+                        setFormData(prev => ({ ...prev, gallery: [...prev.gallery, data.url] }));
+                    }
+                } else {
+                    setError(data.error || 'Upload failed');
+                }
+            } catch (err) {
+                setError('Failed to upload image');
+            } finally {
+                setUploading(null);
+            }
+        };
+    };
+
+    const removeGalleryImage = (index: number) => {
+        setFormData(prev => ({
+            ...prev,
+            gallery: prev.gallery.filter((_, i) => i !== index)
+        }));
+    };
+
+    const addColor = () => {
+        if (!newColor.trim()) return;
+        if (formData.colors.includes(newColor.trim())) return;
+        setFormData(prev => ({
+            ...prev,
+            colors: [...prev.colors, newColor.trim()]
+        }));
+        setNewColor('');
+    };
+
+    const removeColor = (color: string) => {
+        setFormData(prev => ({
+            ...prev,
+            colors: prev.colors.filter(c => c !== color)
         }));
     };
 
@@ -68,7 +152,7 @@ export default function NewProductPage() {
     };
 
     return (
-        <div className="max-w-4xl mx-auto space-y-6 animate-in slide-in-from-bottom duration-500">
+        <div className="max-w-5xl mx-auto space-y-6 animate-in slide-in-from-bottom duration-500">
             {/* Breadcrumb */}
             <Link
                 href="/admin/dashboard/products"
@@ -81,8 +165,8 @@ export default function NewProductPage() {
             {/* Header Area */}
             <div className="flex items-center justify-between">
                 <div>
-                    <h2 className="text-3xl font-bold text-gray-900 uppercase">Add New Product</h2>
-                    <p className="text-gray-500 mt-1">Create a new artwork or shop item.</p>
+                    <h2 className="text-3xl font-black text-gray-900 uppercase tracking-tighter">Add New Product</h2>
+                    <p className="text-gray-500 mt-1">Configure your product details and assets.</p>
                 </div>
             </div>
 
@@ -101,7 +185,7 @@ export default function NewProductPage() {
                         <div className="lg:col-span-2 space-y-6">
                             <div className="bg-white p-8 rounded-3xl border border-gray-100 shadow-sm space-y-6">
                                 <div>
-                                    <label className="block text-sm font-bold text-gray-700 uppercase tracking-wider mb-2">Product Name</label>
+                                    <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Product Name</label>
                                     <input
                                         type="text"
                                         name="name"
@@ -109,49 +193,100 @@ export default function NewProductPage() {
                                         value={formData.name}
                                         onChange={handleChange}
                                         placeholder="e.g. Abstract Sunset"
-                                        className="w-full px-4 py-3 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-gray-900 transition-all"
+                                        className="w-full px-5 py-4 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-gray-900 transition-all font-bold text-lg"
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-bold text-gray-700 uppercase tracking-wider mb-2">Description</label>
+                                    <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Description</label>
                                     <textarea
                                         name="description"
                                         rows={6}
                                         value={formData.description}
                                         onChange={handleChange}
                                         placeholder="Describe the artwork, inspiration, materials..."
-                                        className="w-full px-4 py-3 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-gray-900 transition-all resize-none"
+                                        className="w-full px-5 py-4 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-gray-900 transition-all resize-none leading-relaxed"
                                     ></textarea>
                                 </div>
                             </div>
 
+                            {/* Gallery Section */}
                             <div className="bg-white p-8 rounded-3xl border border-gray-100 shadow-sm space-y-6">
-                                <h3 className="font-bold text-gray-900 uppercase tracking-widest text-sm border-b pb-4">Art Details</h3>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <div>
-                                        <label className="block text-sm font-bold text-gray-700 uppercase tracking-wider mb-2">Artist Name</label>
+                                <div className="flex items-center justify-between border-b pb-4">
+                                    <h3 className="font-bold text-gray-900 uppercase tracking-widest text-sm flex items-center gap-2">
+                                        <ImageIcon className="w-4 h-4 text-gray-400" />
+                                        Image Gallery
+                                    </h3>
+                                    <span className="text-[10px] text-gray-400 font-bold uppercase">{formData.gallery.length} Images Added</span>
+                                </div>
+
+                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                    {formData.gallery.map((img, idx) => (
+                                        <div key={idx} className="relative aspect-square rounded-2xl overflow-hidden group border border-gray-100 bg-gray-50">
+                                            <img src={img} alt={`Gallery ${idx}`} className="w-full h-full object-cover" />
+                                            <button
+                                                type="button"
+                                                onClick={() => removeGalleryImage(idx)}
+                                                className="absolute top-2 right-2 p-1.5 bg-white/80 backdrop-blur rounded-full text-red-500 opacity-0 group-hover:opacity-100 transition-opacity shadow-sm"
+                                            >
+                                                <X className="w-3 h-3" />
+                                            </button>
+                                        </div>
+                                    ))}
+                                    <label className="aspect-square rounded-2xl border-2 border-dashed border-gray-100 flex flex-col items-center justify-center gap-2 hover:border-gray-300 hover:bg-gray-50 transition-all cursor-pointer group">
+                                        {uploading === 'gallery' ? (
+                                            <Loader2 className="w-6 h-6 animate-spin text-gray-400" />
+                                        ) : (
+                                            <>
+                                                <div className="bg-white p-2 rounded-full shadow-sm group-hover:scale-110 transition-transform">
+                                                    <Plus className="w-5 h-5 text-gray-400" />
+                                                </div>
+                                                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Add Image</span>
+                                            </>
+                                        )}
+                                        <input
+                                            type="file"
+                                            accept="image/*"
+                                            className="hidden"
+                                            onChange={(e) => handleFileUpload(e, 'gallery')}
+                                            disabled={uploading !== null}
+                                        />
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div className="bg-white p-8 rounded-3xl border border-gray-100 shadow-sm space-y-6">
+                                <h3 className="font-bold text-gray-900 uppercase tracking-widest text-sm border-b pb-4 flex items-center gap-2">
+                                    <Palette className="w-4 h-4 text-gray-400" />
+                                    Variations
+                                </h3>
+                                <div>
+                                    <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Available Colors</label>
+                                    <div className="flex flex-wrap gap-2 mb-4">
+                                        {formData.colors.map((color) => (
+                                            <span key={color} className="inline-flex items-center gap-2 px-3 py-1.5 bg-gray-900 text-white rounded-xl text-xs font-bold animate-in zoom-in">
+                                                {color}
+                                                <button type="button" onClick={() => removeColor(color)} className="hover:text-red-400">
+                                                    <X className="w-3 h-3" />
+                                                </button>
+                                            </span>
+                                        ))}
+                                    </div>
+                                    <div className="flex gap-2">
                                         <input
                                             type="text"
-                                            name="artist"
-                                            value={formData.artist}
-                                            onChange={handleChange}
-                                            placeholder="e.g. Elena Vostre"
-                                            className="w-full px-4 py-3 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-gray-900 transition-all"
+                                            placeholder="Add color (e.g. Midnight Blue)..."
+                                            value={newColor}
+                                            onChange={(e) => setNewColor(e.target.value)}
+                                            onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addColor())}
+                                            className="flex-1 px-4 py-3 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-gray-900 transition-all text-sm"
                                         />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-bold text-gray-700 uppercase tracking-wider mb-2">Category</label>
-                                        <select
-                                            name="category"
-                                            value={formData.category}
-                                            onChange={handleChange}
-                                            className="w-full px-4 py-3 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-gray-900 transition-all appearance-none"
+                                        <button
+                                            type="button"
+                                            onClick={addColor}
+                                            className="bg-gray-100 hover:bg-gray-200 text-gray-900 px-6 py-3 rounded-2xl font-bold text-sm transition-all"
                                         >
-                                            <option value="canvas">Canvas Art</option>
-                                            <option value="photo">Photo Art</option>
-                                            <option value="digital">Digital Art</option>
-                                            <option value="ar">AR Art</option>
-                                        </select>
+                                            ADD
+                                        </button>
                                     </div>
                                 </div>
                             </div>
@@ -160,59 +295,125 @@ export default function NewProductPage() {
                         {/* Sidebar Info */}
                         <div className="space-y-6">
                             <div className="bg-white p-8 rounded-3xl border border-gray-100 shadow-sm space-y-6">
-                                <h3 className="font-bold text-gray-900 uppercase tracking-widest text-sm border-b pb-4">Pricing & Stock</h3>
-                                <div>
-                                    <label className="block text-sm font-bold text-gray-700 uppercase tracking-wider mb-2">Base Price ($)</label>
-                                    <input
-                                        type="number"
-                                        name="price"
-                                        step="0.01"
-                                        required
-                                        value={formData.price}
-                                        onChange={handleChange}
-                                        placeholder="0.00"
-                                        className="w-full px-4 py-3 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-gray-900 transition-all"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-bold text-gray-700 uppercase tracking-wider mb-2">Initial Stock</label>
-                                    <input
-                                        type="number"
-                                        name="stock"
-                                        value={formData.stock}
-                                        onChange={handleChange}
-                                        placeholder="0"
-                                        className="w-full px-4 py-3 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-gray-900 transition-all"
-                                    />
+                                <h3 className="font-bold text-gray-900 uppercase tracking-widest text-sm border-b pb-4 flex items-center gap-2">
+                                    <DollarSign className="w-4 h-4 text-gray-400" />
+                                    Pricing & Revenue
+                                </h3>
+                                <div className="space-y-4">
+                                    <div>
+                                        <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Base Price ($)</label>
+                                        <input
+                                            type="number"
+                                            name="basePrice"
+                                            step="0.01"
+                                            required
+                                            value={formData.basePrice}
+                                            onChange={handleChange}
+                                            className="w-full px-4 py-3 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-gray-900 transition-all font-mono"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Gain Fee ($)</label>
+                                        <input
+                                            type="number"
+                                            name="gainFee"
+                                            step="0.01"
+                                            required
+                                            value={formData.gainFee}
+                                            onChange={handleChange}
+                                            className="w-full px-4 py-3 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-gray-900 transition-all font-mono"
+                                        />
+                                    </div>
+                                    <div className="pt-4 border-t border-dashed">
+                                        <div className="flex items-center justify-between text-sm">
+                                            <span className="font-bold text-gray-400 uppercase tracking-widest text-[10px]">Total Listing Price</span>
+                                            <span className="text-2xl font-black text-gray-900">${parseFloat(formData.price).toFixed(2)}</span>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
 
                             <div className="bg-white p-8 rounded-3xl border border-gray-100 shadow-sm space-y-6">
-                                <h3 className="font-bold text-gray-900 uppercase tracking-widest text-sm border-b pb-4">Product Assets</h3>
-                                <div>
-                                    <label className="block text-sm font-bold text-gray-700 uppercase tracking-wider mb-2">Image URL</label>
-                                    <div className="relative">
-                                        <ImageIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                                <h3 className="font-bold text-gray-900 uppercase tracking-widest text-sm border-b pb-4 flex items-center gap-2">
+                                    <Package className="w-4 h-4 text-gray-400" />
+                                    Inventory
+                                </h3>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="col-span-2">
+                                        <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Artist</label>
                                         <input
-                                            type="url"
-                                            name="imageUrl"
-                                            value={formData.imageUrl}
+                                            type="text"
+                                            name="artist"
+                                            value={formData.artist}
                                             onChange={handleChange}
-                                            placeholder="https://..."
-                                            className="w-full pl-12 pr-4 py-3 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-gray-900 transition-all text-sm"
+                                            className="w-full px-4 py-3 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-gray-900 transition-all text-sm"
                                         />
                                     </div>
-                                    <p className="text-[10px] text-gray-400 mt-2 italic px-2">Provide a hosted image link for the artwork.</p>
-                                </div>
-                                {formData.imageUrl && (
-                                    <div className="relative aspect-square rounded-2xl overflow-hidden border border-gray-100 bg-gray-50">
-                                        <img src={formData.imageUrl} alt="Preview" className="w-full h-full object-cover" />
+                                    <div>
+                                        <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Initial Stock</label>
+                                        <input
+                                            type="number"
+                                            name="stock"
+                                            value={formData.stock}
+                                            onChange={handleChange}
+                                            className="w-full px-4 py-3 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-gray-900 transition-all"
+                                        />
                                     </div>
-                                )}
+                                    <div>
+                                        <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Category</label>
+                                        <select
+                                            name="category"
+                                            value={formData.category}
+                                            onChange={handleChange}
+                                            className="w-full px-4 py-3 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-gray-900 transition-all appearance-none text-xs font-bold uppercase"
+                                        >
+                                            <option value="canvas">Canvas</option>
+                                            <option value="photo">Photo</option>
+                                            <option value="digital">Digital</option>
+                                            <option value="ar">AR Art</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="bg-white p-8 rounded-3xl border border-gray-100 shadow-sm space-y-6">
+                                <h3 className="font-bold text-gray-900 uppercase tracking-widest text-sm border-b pb-4">Display Asset</h3>
+                                <div className="space-y-4">
+                                    <label className="relative aspect-square rounded-2xl border-2 border-dashed border-gray-100 flex flex-col items-center justify-center gap-3 hover:border-gray-300 hover:bg-gray-50 transition-all cursor-pointer group overflow-hidden">
+                                        {formData.imageUrl ? (
+                                            <>
+                                                <img src={formData.imageUrl} alt="Main" className="w-full h-full object-cover" />
+                                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                                    <Upload className="w-8 h-8 text-white mt-1" />
+                                                </div>
+                                            </>
+                                        ) : (
+                                            <>
+                                                {uploading === 'main' ? (
+                                                    <Loader2 className="w-10 h-10 animate-spin text-gray-400" />
+                                                ) : (
+                                                    <>
+                                                        <div className="bg-white p-4 rounded-full shadow-sm group-hover:scale-110 transition-transform">
+                                                            <Upload className="w-8 h-8 text-gray-400" />
+                                                        </div>
+                                                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Main Product Image</span>
+                                                    </>
+                                                )}
+                                            </>
+                                        )}
+                                        <input
+                                            type="file"
+                                            accept="image/*"
+                                            className="hidden"
+                                            onChange={(e) => handleFileUpload(e, 'main')}
+                                            disabled={uploading !== null}
+                                        />
+                                    </label>
+                                </div>
                             </div>
 
                             <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm flex items-center justify-between">
-                                <span className="font-bold text-gray-900 uppercase tracking-widest text-sm">Active on Shop</span>
+                                <span className="font-bold text-gray-900 uppercase tracking-widest text-[10px]">Active for Sale</span>
                                 <label className="relative inline-flex items-center cursor-pointer">
                                     <input
                                         type="checkbox"
@@ -233,24 +434,26 @@ export default function NewProductPage() {
                         </div>
                     )}
 
-                    <div className="flex items-center justify-end gap-4">
+                    <div className="flex items-center justify-end gap-6 pt-6">
                         <Link
                             href="/admin/dashboard/products"
-                            className="px-8 py-3 font-bold text-gray-500 hover:text-gray-900 transition-colors uppercase tracking-widest text-sm"
+                            className="text-sm font-bold text-gray-400 hover:text-gray-900 transition-colors uppercase tracking-widest"
                         >
                             Cancel
                         </Link>
                         <button
                             type="submit"
-                            disabled={loading}
-                            className="flex items-center gap-2 bg-gray-900 text-white px-10 py-4 rounded-2xl font-bold hover:bg-black transition-all shadow-xl shadow-gray-200 active:scale-95 disabled:opacity-50"
+                            disabled={loading || uploading !== null}
+                            className="bg-gray-900 text-white px-12 py-5 rounded-2xl font-black hover:bg-black transition-all shadow-2xl shadow-gray-300 active:scale-95 disabled:opacity-50 tracking-widest uppercase"
                         >
                             {loading ? (
-                                <Loader2 className="w-5 h-5 animate-spin" />
+                                <Loader2 className="w-6 h-6 animate-spin" />
                             ) : (
-                                <Save className="w-5 h-5" />
+                                <div className="flex items-center gap-3">
+                                    <Save className="w-5 h-5" />
+                                    Publish Artwork
+                                </div>
                             )}
-                            PUBLISH PRODUCT
                         </button>
                     </div>
                 </form>

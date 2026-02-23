@@ -55,14 +55,18 @@ export async function PATCH(
 
         const { id } = params;
         const body = await req.json();
-        const { name, description, price, category, imageUrl, artist, stock, isActive } = body;
+        const { name, description, basePrice, gainFee, price, category, imageUrl, gallery, colors, artist, stock, isActive } = body;
 
         const updateData: any = {};
         if (name !== undefined) updateData.name = name;
         if (description !== undefined) updateData.description = description;
+        if (basePrice !== undefined) updateData.basePrice = parseFloat(basePrice);
+        if (gainFee !== undefined) updateData.gainFee = parseFloat(gainFee);
         if (price !== undefined) updateData.price = parseFloat(price);
         if (category !== undefined) updateData.category = category;
         if (imageUrl !== undefined) updateData.imageUrl = imageUrl;
+        if (gallery !== undefined) updateData.gallery = gallery;
+        if (colors !== undefined) updateData.colors = colors;
         if (artist !== undefined) updateData.artist = artist;
         if (stock !== undefined) updateData.stock = parseInt(stock);
         if (isActive !== undefined) updateData.isActive = isActive;

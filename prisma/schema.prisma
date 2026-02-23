@@ -7,29 +7,21 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum UserRole {
-  CUSTOMER
-  ARTIST
-  MARKETER
-  ADMIN
-}
-
 model User {
-  id           String   @id @default(cuid())
-  email        String   @unique
-  name         String?
-  country      String?
-  passwordHash String
-  role         UserRole @default(CUSTOMER)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id               String    @id @default(cuid())
+  email            String    @unique
+  name             String?
+  country          String?
+  passwordHash     String
+  role             UserRole  @default(CUSTOMER)
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
   resetToken       String?   @unique
   resetTokenExpiry DateTime?
-  
-  carts        Cart[]
-  orders       Order[]
-  artist       Artist?
-  marketer     Marketer?
+  artist           Artist?
+  carts            Cart[]
+  marketer         Marketer?
+  orders           Order[]
 }
 
 model Cart {
@@ -39,44 +31,45 @@ model Cart {
   quantity  Int      @default(1)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  
-  user    User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
-  
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@unique([userId, productId])
 }
 
 model Product {
-  id          String   @id @default(cuid())
+  id          String      @id @default(cuid())
   name        String
   description String?
   price       Float
   category    String
   imageUrl    String?
   artist      String?
-  stock       Int      @default(0)
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  
-  carts    Cart[]
-  orders   OrderItem[]
+  stock       Int         @default(0)
+  isActive    Boolean     @default(true)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  basePrice   Float       @default(0)
+  colors      String[]    @default([])
+  gainFee     Float       @default(0)
+  gallery     String[]    @default([])
+  carts       Cart[]
+  orders      OrderItem[]
 }
 
 model Order {
-  id              String     @id @default(cuid())
-  userId          String
-  totalAmount     Float
-  status          String     @default("pending")
-  shippingAddress String?
-  paymentMethod   String?
-  affiliateCode   String?
-  createdAt       DateTime   @default(now())
-  updatedAt       DateTime   @updatedAt
-  
+  id                    String                 @id @default(cuid())
+  userId                String
+  totalAmount           Float
+  status                String                 @default("pending")
+  shippingAddress       String?
+  paymentMethod         String?
+  affiliateCode         String?
+  createdAt             DateTime               @default(now())
+  updatedAt             DateTime               @updatedAt
+  affiliateTransactions AffiliateTransaction[]
   user                  User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
   items                 OrderItem[]
-  affiliateTransactions AffiliateTransaction[]
 }
 
 model OrderItem {
@@ -86,10 +79,9 @@ model OrderItem {
   quantity  Int
   price     Float
   createdAt DateTime @default(now())
-  
-  order   Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
-  
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
   @@unique([orderId, productId])
 }
 
@@ -113,36 +105,33 @@ model Artist {
   instagramHandle String?
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
-  
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Marketer {
-  id             String   @id @default(cuid())
-  userId         String   @unique
-  affiliateCode  String   @unique
-  commissionRate Float    @default(0.10)
-  totalEarnings  Float    @default(0)
-  clickCount     Int      @default(0)
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-  
-  user           User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id             String                 @id @default(cuid())
+  userId         String                 @unique
+  affiliateCode  String                 @unique
+  commissionRate Float                  @default(0.10)
+  totalEarnings  Float                  @default(0)
+  clickCount     Int                    @default(0)
+  createdAt      DateTime               @default(now())
+  updatedAt      DateTime               @updatedAt
   transactions   AffiliateTransaction[]
+  user           User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
   payoutRequests PayoutRequest[]
 }
 
 model AffiliateTransaction {
-  id           String   @id @default(cuid())
-  marketerId   String
-  orderId      String
-  commission   Float
-  orderAmount  Float
-  status       String   @default("completed")
-  createdAt    DateTime @default(now())
-  
-  marketer Marketer @relation(fields: [marketerId], references: [id], onDelete: Cascade)
-  order    Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  id          String   @id @default(cuid())
+  marketerId  String
+  orderId     String
+  commission  Float
+  orderAmount Float
+  status      String   @default("completed")
+  createdAt   DateTime @default(now())
+  marketer    Marketer @relation(fields: [marketerId], references: [id], onDelete: Cascade)
+  order       Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
 }
 
 model PayoutRequest {
@@ -152,6 +141,12 @@ model PayoutRequest {
   status     String   @default("pending")
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
-  
-  marketer Marketer @relation(fields: [marketerId], references: [id], onDelete: Cascade)
+  marketer   Marketer @relation(fields: [marketerId], references: [id], onDelete: Cascade)
+}
+
+enum UserRole {
+  CUSTOMER
+  ARTIST
+  MARKETER
+  ADMIN
 }
