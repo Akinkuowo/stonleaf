@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Mail, Lock, Eye, EyeOff, Loader2, ShieldCheck } from 'lucide-react';
 
@@ -11,6 +11,20 @@ export default function AdminLoginPage() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const router = useRouter();
+
+    useEffect(() => {
+        const token = localStorage.getItem('token');
+        if (token) {
+            try {
+                const payload = JSON.parse(atob(token.split('.')[1]));
+                if (payload.role === 'ADMIN') {
+                    window.location.href = '/admin/dashboard';
+                }
+            } catch (e) {
+                console.error('Failed to decode token', e);
+            }
+        }
+    }, []);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -29,7 +43,7 @@ export default function AdminLoginPage() {
             if (response.ok) {
                 if (data.user.role === 'ADMIN') {
                     localStorage.setItem('token', data.token);
-                    router.push('/admin/dashboard');
+                    window.location.href = '/admin/dashboard';
                 } else {
                     setError('Access denied. Admin privileges required.');
                 }

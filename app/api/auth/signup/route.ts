@@ -5,7 +5,7 @@ import { hashPassword, generateToken } from '@/lib/auth'
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { email, password, name, country } = body
+    const { email, password, name, country, role } = body
 
     // Validation
     if (!email || !password) {
@@ -38,7 +38,7 @@ export async function POST(request: NextRequest) {
           name,
           country,
           passwordHash,
-          role: 'CUSTOMER'
+          role: role || 'CUSTOMER'
         }
       })
 

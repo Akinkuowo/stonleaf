@@ -12,7 +12,9 @@ import {
     Menu,
     X,
     ShieldCheck,
-    Bell
+    Bell,
+    FileText,
+    Package
 } from 'lucide-react';
 import { verifyToken, isAdmin } from '@/lib/auth';
 
@@ -33,19 +35,25 @@ export default function AdminDashboardLayout({
             return;
         }
 
-        const user = verifyToken(token);
-        if (!user || !isAdmin(user)) {
+        try {
+            const payload = JSON.parse(atob(token.split('.')[1]));
+            if (payload.role !== 'ADMIN') {
+                router.push('/admin/login');
+                return;
+            }
+            setIsAuthorized(true);
+        } catch (e) {
+            console.error('Failed to decode token', e);
             router.push('/admin/login');
-            return;
         }
-
-        setIsAuthorized(true);
     }, [router]);
 
     const navItems = [
         { name: 'Dashboard', href: '/admin/dashboard', icon: LayoutDashboard },
-        { name: 'Users', href: '/admin/dashboard/users', icon: Users },
+        { name: 'Products', href: '/admin/dashboard/products', icon: Package },
         { name: 'Orders', href: '/admin/dashboard/orders', icon: ShoppingBag },
+        { name: 'Blog', href: '/admin/dashboard/blog', icon: FileText },
+        { name: 'Users', href: '/admin/dashboard/users', icon: Users },
         { name: 'Analytics', href: '/admin/dashboard/analytics', icon: BarChart3 },
         { name: 'Settings', href: '/admin/dashboard/settings', icon: Settings },
     ];
@@ -79,8 +87,8 @@ export default function AdminDashboardLayout({
                                 key={item.name}
                                 href={item.href}
                                 className={`flex items-center gap-4 px-4 py-3 rounded-xl transition-all duration-200 group ${isActive
-                                        ? 'bg-white/10 text-white'
-                                        : 'text-gray-400 hover:bg-white/5 hover:text-white'
+                                    ? 'bg-white/10 text-white'
+                                    : 'text-gray-400 hover:bg-white/5 hover:text-white'
                                     }`}
                             >
                                 <item.icon className="w-5 h-5" />
