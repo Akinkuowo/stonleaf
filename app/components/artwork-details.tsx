@@ -8,6 +8,7 @@ import { FaTiktok, FaPinterest, FaRegHeart, FaHeart } from 'react-icons/fa';
 import Image from 'next/image';
 
 import { useCart } from '@/context/CartContext';
+import Toast from '@/components/Toast';
 
 export default function ArtworkDetailsPage() {
   const router = useRouter();
@@ -100,6 +101,8 @@ export default function ArtworkDetailsPage() {
     }
   }, [artworkId, router]);
 
+  const [showToast, setShowToast] = useState(false);
+
   const handleAddToCart = () => {
     if (!artwork) return;
 
@@ -112,7 +115,7 @@ export default function ArtworkDetailsPage() {
       artist: artwork.artist,
     });
 
-    router.push('/cart');
+    setShowToast(true);
   };
 
 
