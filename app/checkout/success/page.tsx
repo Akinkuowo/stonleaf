@@ -31,11 +31,13 @@ function SuccessContent() {
         }
 
         stripe.retrievePaymentIntent(clientSecret).then(async ({ paymentIntent }) => {
+            // Always clear the cart once we've reached this success landing with a payment intent
+            clearCart();
+
             switch (paymentIntent?.status) {
                 case "succeeded":
                     setStatus('success');
                     await triggerProdigiOrder();
-                    clearCart();
                     break;
                 case "processing":
                     setMessage("Your payment is processing.");
