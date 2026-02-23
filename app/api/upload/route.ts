@@ -18,22 +18,17 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
         }
 
-        const formData = await req.json();
-        const { image } = formData; // Expecting base64 string
+        const formData = await req.formData();
+        const file = formData.get('file') as File;
 
-        if (!image) {
-            return NextResponse.json({ error: 'No image data provided' }, { status: 400 });
+        if (!file) {
+            return NextResponse.json({ error: 'No file provided' }, { status: 400 });
         }
 
-        // Handle base64 image data
-        const base64Data = image.replace(/^data:image\/\w+;base64,/, "");
-        const buffer = Buffer.from(base64Data, 'base64');
+        const bytes = await file.arrayBuffer();
+        const buffer = Buffer.from(bytes);
 
-        // Get file extension from base64 string (optional but good)
-        const mimeMatch = image.match(/^data:(image\/\w+);base64,/);
-        const mimeType = mimeMatch ? mimeMatch[1] : 'image/jpeg';
-        const extension = mimeType.split('/')[1] || 'jpg';
-
+        const extension = file.name.split('.').pop() || 'jpg';
         const filename = `${uuidv4()}.${extension}`;
         const uploadDir = join(process.cwd(), 'public', 'uploads');
         const filepath = join(uploadDir, filename);

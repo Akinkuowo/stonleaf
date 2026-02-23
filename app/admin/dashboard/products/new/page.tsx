@@ -63,38 +63,34 @@ export default function NewProductPage() {
 
         setUploading(target === 'main' ? 'main' : 'gallery');
 
-        // Convert to base64 for our simple upload API
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onload = async () => {
-            try {
-                const base64Image = reader.result as string;
-                const token = localStorage.getItem('token');
-                const response = await fetch('/api/upload', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
-                    body: JSON.stringify({ image: base64Image })
-                });
+        try {
+            const token = localStorage.getItem('token');
+            const dataTransfer = new FormData();
+            dataTransfer.append('file', file);
 
-                const data = await response.json();
-                if (response.ok) {
-                    if (target === 'main') {
-                        setFormData(prev => ({ ...prev, imageUrl: data.url }));
-                    } else {
-                        setFormData(prev => ({ ...prev, gallery: [...prev.gallery, data.url] }));
-                    }
+            const response = await fetch('/api/upload', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                },
+                body: dataTransfer
+            });
+
+            const data = await response.json();
+            if (response.ok) {
+                if (target === 'main') {
+                    setFormData(prev => ({ ...prev, imageUrl: data.url }));
                 } else {
-                    setError(data.error || 'Upload failed');
+                    setFormData(prev => ({ ...prev, gallery: [...prev.gallery, data.url] }));
                 }
-            } catch (err) {
-                setError('Failed to upload image');
-            } finally {
-                setUploading(null);
+            } else {
+                setError(data.error || 'Upload failed');
             }
-        };
+        } catch (err) {
+            setError('Failed to upload image');
+        } finally {
+            setUploading(null);
+        }
     };
 
     const removeGalleryImage = (index: number) => {
