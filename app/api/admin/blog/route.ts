@@ -63,10 +63,7 @@ export async function POST(req: NextRequest) {
                 slug,
                 excerpt,
                 content,
-                coverImage,
-                category: category || 'General',
-                published: published !== undefined ? published : false,
-                authorId: user.id
+                imageUrl: coverImage, // Use imageUrl as per schema
             }
         });
 

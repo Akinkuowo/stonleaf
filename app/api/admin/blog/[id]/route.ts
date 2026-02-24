@@ -4,9 +4,10 @@ import { verifyToken, isAdmin } from '@/lib/auth';
 
 export async function GET(
     req: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const { id } = await params;
         const authHeader = req.headers.get('Authorization');
         if (!authHeader || !authHeader.startsWith('Bearer ')) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -19,7 +20,6 @@ export async function GET(
             return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
         }
 
-        const { id } = params;
 
         const post = await prisma.post.findUnique({
             where: { id }
@@ -38,9 +38,10 @@ export async function GET(
 
 export async function PATCH(
     req: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const { id } = await params;
         const authHeader = req.headers.get('Authorization');
         if (!authHeader || !authHeader.startsWith('Bearer ')) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -53,7 +54,6 @@ export async function PATCH(
             return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
         }
 
-        const { id } = params;
         const body = await req.json();
         const { title, slug, excerpt, content, coverImage, category, published } = body;
 
@@ -62,9 +62,7 @@ export async function PATCH(
         if (slug !== undefined) updateData.slug = slug;
         if (excerpt !== undefined) updateData.excerpt = excerpt;
         if (content !== undefined) updateData.content = content;
-        if (coverImage !== undefined) updateData.coverImage = coverImage;
-        if (category !== undefined) updateData.category = category;
-        if (published !== undefined) updateData.published = published;
+        if (coverImage !== undefined) updateData.imageUrl = coverImage;
 
         const post = await prisma.post.update({
             where: { id },
@@ -80,9 +78,10 @@ export async function PATCH(
 
 export async function DELETE(
     req: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const { id } = await params;
         const authHeader = req.headers.get('Authorization');
         if (!authHeader || !authHeader.startsWith('Bearer ')) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -95,7 +94,6 @@ export async function DELETE(
             return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
         }
 
-        const { id } = params;
 
         await prisma.post.delete({
             where: { id }

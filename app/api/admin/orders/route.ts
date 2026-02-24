@@ -39,11 +39,3 @@ export async function GET(req: NextRequest) {
     }
 }
 
-export async function PATCH(
-    req: NextRequest,
-    { params }: { params: { id: string } }
-) {
-    // This would be for updating order status
-    // I'll implement this if I use a separate route for ID or handle it here
-    return NextResponse.json({ error: 'Not implemented' }, { status: 501 });
-}
