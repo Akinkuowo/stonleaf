@@ -10,7 +10,7 @@ export default function DiyHangPage() {
             {/* Hero Section */}
             <section className="container mx-auto px-4 py-16 md:py-24 text-center max-w-4xl">
                 <h1 className="text-5xl md:text-7xl font-bold mb-6 tracking-tight">
-                    Hanging With Artsake<span className="text-[#FF4D4D]">.</span>
+                    Hanging With Stonleaf<span className="text-[#FF4D4D]">.</span>
                 </h1>
                 <p className="text-xl md:text-2xl text-gray-800 mb-12 font-light">
                     Your Step-By-Step Guide To Hanging Art With Our “No Wire” Hanging System
